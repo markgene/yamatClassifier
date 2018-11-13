@@ -51,7 +51,7 @@ save(rgset, file = file.path(data_dir, "rgset.Rda"))
 
 ```{r most_variable_loci}
 top_n <- 1000
-beta_vals <- most_variably_methylated_loci(beta_vals, top_n = top_n)
+beta_vals_mv <- most_variable(beta_vals, top_n = top_n)
 ```
 
 ```{r}
