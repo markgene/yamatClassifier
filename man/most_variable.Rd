@@ -16,5 +16,6 @@ A matrix of beta values of most variably methylated loci.
 }
 \description{
 Obtain the most variably methylated loci. The variability is measured
-by standard deviation.
+by standard deviation. The function can also meet the general need to
+obtaint the most variable rows.
 }

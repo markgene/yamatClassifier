@@ -54,18 +54,8 @@ top_n <- 1000
 beta_vals_mv <- most_variable(beta_vals, top_n = top_n)
 ```
 
-```{r}
-beta_sd <- rowSds(beta_vals)
-names(beta_sd) <- rownames(beta_vals)
-cutoff <- head(sort(beta_sd, decreasing = TRUE), top_n)[top_n]
-data.frame(x = beta_sd) %>%
-  ggdensity(
-    .,
-    x = "x",
-    fill = "lightgray",
-    add = "mean"
-  ) + 
-  geom_vline(xintercept = cutoff, linetype = "dotted", colour = "coral")
+```{r density_plot_loci}
+density_plot_row_sd(beta_vals, top_n = top_n)
 ```
 
 
