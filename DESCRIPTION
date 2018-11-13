@@ -1,7 +1,7 @@
 Package: yamatClassifier
 Type: Package
 Title: Yet Another Methylation Array Toolkit: Classifier
-Version: 0.0.0.9001
+Version: 0.0.0.9002
 Authors@R: c(
     person("Mark", "Chen", email = "mjchen.gene@gmail.com", role = "cre"))
 Maintainer: Mark J Chen <mjchen.gene@gmail.com>
@@ -11,6 +11,7 @@ License: GPL (>=2)
 Encoding: UTF-8
 LazyData: true
 Imports:
+    magrittr (>= 1.5),
     yamat (>= 0.0.0.9010),
     matrixStats (>= 0.54.0)
 Suggests: knitr,
