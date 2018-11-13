@@ -1,0 +1,49 @@
+---
+title: "Solid Tumor Example"
+author:
+- name: Mark Chen
+  affiliation: St Jude Children's Research Hospital
+package: yamatClassifier
+output:
+  BiocStyle::html_document
+abstract: |
+  A workflow to develop a classifier of a subst of solid tumors.
+vignette: |
+  %\VignetteIndexEntry{Solid Tumor Example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+```{r load_lib, echo=FALSE}
+library(yamat)
+library(yamatClassifier)
+```
+
+
+# Data
+
+```{r get_data}
+# Download data
+gse_acc <- "GSE97529"
+data_dir <- "~/Downloads/GSE97529"
+rgset <- yamat::get_gse(gse_acc, data_dir)
+# Normalization
+gmset <- yamat::normalize(rgset = rgset, norm_method = "funnorm")
+# Save
+save(rgset, file = file.path(data_dir, "rgset.Rda"))
+```
+
+# Obtain the beta values of most variable loci
+
+```{r most_variable_loci}
+
+```
+
