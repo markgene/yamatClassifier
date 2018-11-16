@@ -182,6 +182,47 @@ shuffle_matrix.row <- function(x) {
     do.call(rbind, .) %>%
     as.matrix() -> x_shuffled
 }
+
+
+#' Find PC number: fraction of variance.
+#'
+#' The fraction of total variance retained for each PC is calculated by
+#' dividing each eigen value by the total sum of eigen values. The
+#' assumption behind the approach is that high variance surrogates
+#' high importance, which may be not true in the real data.
+#'
+#' @param eigen_values A vector of eigen values. It is the item
+#'   \code{values} of the item \code{eigs} of the returned value of
+#'   \code{\link{pca123}}, which is returned by
+#'   \code{\link[RSpectra]{eigs}}.
+#' @param threshold A numeric scalar between 0 to 1 of the threshold of
+#'   the fraction of variance. Default to 0.9.
+#' @return Depends on which method is called.
+#' @export
+find_pc_number.var_frac <- function(eigen_values, threshold = 0.9) {
+  if (missing(eigen_values))
+    stop("Argument eigen_values is required.")
+  if (!is.numeric(eigen_values))
+    stop("Argument eigen_values should be a numeric vector.")
+  if (threshold < 0 | threshold > 1)
+    stop("Argument threshold should between 0 to 1.")
+  frac_var <- cumsum(eigen_values) / sum(eigen_values)
+  pc_num <- min(which(frac_var > threshold))
+
+  data.frame(x = seq(length(frac_var)), y = frac_var) %>%
+    ggplot2::ggplot(., ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_path(colour = "royalblue") +
+    ggplot2::geom_point(colour = "royalblue") +
+    ggplot2::geom_vline(xintercept = pc_num,
+                        colour = "coral",
+                        linetype = "dashed") +
+    ggplot2::geom_hline(yintercept = threshold,
+                        colour = "coral",
+                        linetype = "dashed") -> p
+  list(pc_num = pc_num, variance_fraction = frac_var, plot = p)
+}
+
+
 #' Find PC number: Capper's method.
 #'
 #' The method is described in the paper by Capper et al. entitled
