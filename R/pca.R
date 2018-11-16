@@ -173,6 +173,8 @@ shuffle_matrix.row <- function(x) {
 #'     \item \code{pca_num} An integer scalar of PC number.
 #'     \item \code{variance_fraction} The sum of fraction of variance
 #'       of \code{pca_num} PCs.
+#'    \item \code{eigs_shuffled} A numeric vector of eigen values of
+#'       the randomized data.
 #'     \item \code{plot} A \code{\link[ggplot2]{ggplot}} object of
 #'       density plot of eigenvalues of observed and randomized data.
 #'   }
@@ -193,6 +195,7 @@ find_pc_number.capper <- function(x, eigen_values) {
   # randomized data.
   pca_num <- sum(eigen_values > max(res_shuffled$eigs$values))
   frac_var <- cumsum(eigen_values) / sum(eigen_values)
+  output$eigs_shuffled <- res_shuffled$eigs$values
   output$pca_num <- pca_num
   output$variance_fraction <- frac_var[pca_num]
   # Plot
