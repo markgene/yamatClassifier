@@ -5,8 +5,8 @@ x <- as.matrix(mtcars[, c(1, 3:6)])
 k <- 3
 
 test_that(
-  "pca123()", {
-    expect_error(res <- pca123(x = x, k = k), NA)
+  "pca()", {
+    expect_error(res <- pca(x = x, k = k, seed = 1), NA)
   }
 )
 
