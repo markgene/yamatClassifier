@@ -99,6 +99,26 @@ pca123 <- function(x, k = 50) {
 }
 
 
+#' Project to new basis.
+#'
+#' Project the scaled input matrix (i.e. z-scores) onto the new basis.
+#'
+#' @param pca123_res A list returned by \code{\link{pca123}}.
+#' @param pc_num An integer scalar of PC number.
+#' @return A matrix which has columns as new features (PCs) and rows
+#'   as samples.
+project_pc <- function(pca123_res, pc_num) {
+  if (missing(pca123_res))
+    stop("Argument pca123_res is required.")
+  if (missing(pc_num))
+    stop("Argument pc_num is required.")
+  phi <- pca123_res$eigs$vectors[, seq(pc_num)]
+  row.names(phi) <- colnames(pca123_res)
+  colnames(phi) <- paste0("PC", seq(pc_num))
+  pca123_res$scaled %*% phi
+}
+
+
 #' Shuffle matrix.
 #'
 #' Each row or column is shuffled separately. To reproduce the result,
