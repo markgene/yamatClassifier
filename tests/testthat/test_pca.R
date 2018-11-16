@@ -11,6 +11,21 @@ test_that(
 )
 
 test_that(
+  "find_pc_number.capper()", {
+    res <- pca123(x = x, k = k)
+    set.seed(1)
+    expect_error(pc_capper <-
+                   find_pc_number.capper(
+                     x = x,
+                     eigen_values = res$eigs$values,
+                     k = k
+                   ),
+                 NA)
+    expect_true(pc_capper$variance_fraction - 0.8314244 < 1e-7)
+  }
+)
+
+test_that(
   "shuffle_matrix.column()", {
     expect_error(x_shuffled <- shuffle_matrix.column(x), NA)
     expect_true(all(x_shuffled[, 1] %in% x[, 1]))
