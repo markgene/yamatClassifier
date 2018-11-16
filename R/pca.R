@@ -212,6 +212,51 @@ find_pc_number.capper <- function(x, eigen_values) {
     ) -> output$plot
    output
 }
+
+
+#' Find PC number: yamat method.
+#'
+#' The method is based upon Capper's method (see \code{\link{find_pc_number.capper}}).
+#' It estimates the number of the maximum eigenvalue of randomized data by
+#' repeat the randomization for several times.
+#'
+#' @param x A matrix which has columns as features and rows as samples.
+#' @param eigen_values A vector of eigen values. It is the item
+#'   \code{values} of the item \code{eigs} of the returned value of
+#'   \code{\link{pca123}}, which is returned by
+#'   \code{\link[RSpectra]{eigs}}.
+#' @param n An integer scalar of randomization times. Default to 30.
+#' @return A list of three items:
+#'   \itemize{
+#'     \item \code{pca_num} An integer scalar of PC number.
+#'     \item \code{variance_fraction} The sum of fraction of variance
+#'       of \code{pca_num} PCs.
+#'     \item \code{raw} A \code{data.frame} of maximum eigen values
+#'       and PC numbers.
+#'   }
+#' @note The Capper and yamat methods gives the same number of PCs
+#'   on solid tumor example.
+find_pc_number.yamat <- function(x, eigen_values, n = 30) {
+  .check_args_find_pc_number(x, eigen_values)
+  lapply(
+    seq(n),
+    function(i) {
+      res <- find_pc_number.capper(x, eigen_values)
+      data.frame(pca_num = res$pca_num,
+                 max_eigs = max(res$eigs_shuffled))
+    }
+  ) %>%
+    do.call(rbind, .) -> trials
+  pca_num <- sum(eigen_values > mean(trials$max_eigs))
+  frac_var <- cumsum(eigen_values) / sum(eigen_values)
+  output <- list()
+  output$pca_num <- pca_num
+  output$variance_fraction <- frac_var[pca_num]
+  output$raw <- trials
+  output
+}
+
+
 .check_args_find_pc_number <- function(x, eigen_values) {
   if (missing(x))
     stop("Argument x is required.")
@@ -222,3 +267,4 @@ find_pc_number.capper <- function(x, eigen_values) {
   if (!is.numeric(eigen_values))
     stop("Argument eigen_values should be a numeric vector.")
 }
+
