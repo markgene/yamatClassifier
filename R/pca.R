@@ -4,48 +4,53 @@
 #' PCA
 #'
 #' @param x A matrix which has columns as features and rows as samples.
-#' @return TBA.
-pca <- function(x, k = 50, seed = 1) {
-  res <- .pca123(x, k = k)
-  # Step 4 Choose principal components (PCs). Following Capper's paper,
-  # I determine the number of PCs by comparing eigenvalues to the
-  # maximum eigenvalue of a PCA using randomize beta values, which is
-  # obtained by shuffing sample labels per loci.
-  # Randomize beta values.
+#' @param k Number of eigenvalues requested.
+#' @param seed A numeric number of seed used for Capper's method of
+#'   determining PC number. In brief, the method shuffles features
+#'   across samples and determine the PC number by comparing the
+#'   maximum of eigen values from the randomization.
+#' @param threshold A numeric scalar between 0 to 1 of the threshold of
+#'   the fraction of variance to choose PC number. Default to 0.9.
+#' @return A list of four elements:
+#'   \itemize{
+#'     \item \code{projected} The result matrix of PCA analysis.
+#'     \item \code{pca123} A list of result from step 1-3 returned by
+#'       \code{\link{pca123}}.
+#'     \item \code{capper} A list of the result of choosing PC number
+#'       by Capper's method, returned by \code{\link{find_pc_number.capper}}.
+#'     \item \code{vf} A list of the result of choosing PC number
+#'       by fraction of variance, returned by \code{\link{find_pc_number.var_frac}}.
+#'   }
+#' @details The function wraps up the following five steps of PCA:
+#'    \enumerate{
+#'     \item Center and scale.
+#'     \item Compute the correlation/covariance matrix.
+#'     \item Calculate the eigenvectors and eigenvalues.
+#'     \item Choose the PC number. I use Capper's method and fraction of
+#'       variance to calculate PC numbers and choose the bigger one
+#'       from the two methods. See details at \code{\link{find_pc_number.capper}}
+#'       and \code{\link{find_pc_number.var_frac}}.
+#'     \item Project the scaled input matrix onto the new basis.
+#'   }
+#'   I use \code{\link[RSpectra]{eigs}} function in Rspectra package
+#'   instead of \code{\link[base]{eigen}} function in base to deal
+#'   with large matrix.
+#' @export
+pca <- function(x, k = 50, seed = 1, threshold = 0.9) {
+  # Step 1-3
+  res <- pca123(x, k = k)
+  # Step 4 Choose principal components (PCs).
   set.seed(seed = seed)
-  lapply(
-    seq(nrow(beta_vals_mv)),
-    function(i) {
-      sample(beta_vals_mv[i, ])
-    }
-  ) %>%
-    do.call(rbind, .) %>%
-    as.matrix() %>%
-    t() %>%
-    cov() -> loci_cov_randomized
-
-  # Calculate eigenvalues of randomized beta values.
-  loci_eig_randomized <- eigs(loci_cov_randomized, k = 50)
-
-  data.frame(ob = loci_eig$values, bg = loci_eig_randomized$values) %>%
-    tidyr::gather(key = "type", value = "eigenvalue") %>%
-    ggpubr::ggdensity(
-      .,
-      "eigenvalue",
-      xlab = "PC eigenvalue",
-      ylab = "Density",
-      color = "type",
-      fill = "type",
-      alpha = 0.6,
-      palette = "jco"
-    ) +
-    ggplot2::geom_vline(
-      xintercept = max(loci_eig_randomized$values),
-      linetype = "dashed",
-      color = "royalblue"
-    )
-
-  pca_num <- ceiling(max(loci_eig_randomized$values))
+  capper_res <- find_pc_number.capper(x, res$eigs$values)
+  vf_res <- find_pc_number.var_frac(res$eigs$values, threshold)
+  pc_num <- max(capper_res$pc_num, vf_res$pc_num)
+  x_projected <- project_pc(pca123_res = res, pc_num = pc_num)
+  list(
+    pca123 = res,
+    capper = capper_res,
+    vf = vf_res,
+    projected = x_projected
+  )
 }
 
 
