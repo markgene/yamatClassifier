@@ -157,3 +157,50 @@ shuffle_matrix.row <- function(x) {
     do.call(rbind, .) %>%
     as.matrix() -> x_shuffled
 }
+#' Find PC number: Capper's method.
+#'
+#' @param x A matrix which has columns as features and rows as samples.
+#' @param eigen_values A vector of eigen values. It is the item
+#'   \code{vectors} of the item \code{eigs} of the returned value of
+#'   \code{\link{pca123}}, which is returned by
+#'   \code{\link[RSpectra]{eigs}}.
+#' @param k Number of eigenvalues requested.
+#' @return A list of three items:
+#'   \itemize{
+#'     \item \code{pca_num} An integer scalar of PC number.
+#'     \item \code{variance_fraction} The sum of fraction of variance
+#'       of \code{pca_num} PCs.
+#'     \item \code{plot} A \code{\link[ggplot2]{ggplot}} object of
+#'       density plot of eigenvalues of observed and randomized data.
+#'   }
+find_pc_number.capper <- function(x, eigen_values, k = 50) {
+  x_shuffled <- shuffle_matrix(x, margin = "col")
+  res_shuffled <- pca123(x_shuffled, k = k)
+  output <- list()
+  # Number of PCs whose eigenvalues are larger the maximum of the
+  # randomized data.
+  pca_num <- sum(eigen_values > max(res_shuffled$eigs$values))
+  frac_var <- cumsum(eigen_values) / sum(eigen_values)
+  output$pca_num <- pca_num
+  output$variance_fraction <- frac_var[pca_num]
+  # Plot
+  data.frame(observed = eigen_values,
+             randomized = res_shuffled$eigs$values) %>%
+    tidyr::gather(key = "type", value = "eigenvalue") %>%
+    ggpubr::ggdensity(
+      .,
+      "eigenvalue",
+      xlab = "PC eigenvalue",
+      ylab = "Density",
+      color = "type",
+      fill = "type",
+      alpha = 0.6,
+      palette = "jco"
+    ) +
+    ggplot2::geom_vline(
+      xintercept = max(res_shuffled$eigs$values),
+      linetype = "dashed",
+      color = "royalblue"
+    ) -> output$plot
+   output
+}
