@@ -49,7 +49,7 @@ pca <- function(x, k = 50, seed = 1) {
 }
 
 
-#' PCA step 1, 2, 3
+#' PCA step 1, 2, 3.
 #'
 #' @param x A matrix which has columns as features and rows as samples.
 #' @param k Number of eigenvalues requested.
@@ -62,6 +62,15 @@ pca <- function(x, k = 50, seed = 1) {
 #'     \item \code{plot} A \code{\link[ggplot2]{ggplot}} object of
 #'       density plot of eigenvalues.
 #'   }
+#' @details PCA steps 1, 2, 3 are:
+#'    \enumerate{
+#'     \item Center and scale.
+#'     \item Compute the correlation/covariance matrix.
+#'     \item Calculate the eigenvectors and eigenvalues.
+#'   }
+#'   I use \code{\link[RSpectra]{eigs}} function in Rspectra package
+#'   instead of \code{\link[base]{eigen}} function in base to deal
+#'   with large matrix.
 pca123 <- function(x, k = 50) {
   # Step 1 Center and scale.
   x_scaled <- scale(x, center = TRUE, scale = TRUE)
