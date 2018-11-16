@@ -6,6 +6,7 @@
 #' @param n An integer scalar. Default to 10.
 #' @param ... Any arguments passed to \code{\link[RTsne]{RTsne}}.
 #' @return A list of the returned value of \code{\link[RTsne]{RTsne}}.
+#' @export
 tsne <- function(x, n = 10, ...) {
   lapply(seq(n), function(i) {
     Rtsne::Rtsne(X = x, ...)
@@ -19,6 +20,7 @@ tsne <- function(x, n = 10, ...) {
 #'   which is a list.
 #' @param ... Any arguments passed to \code{\link[ggplot2]{aes}}
 #' @return A \code{\link[ggplot2]{ggplot}} object.
+#' @export
 plot_tsne <- function(tsne_res, ...) {
   tsne_res$Y %>%
     as.data.frame() %>%
@@ -44,6 +46,7 @@ plot_tsne <- function(tsne_res, ...) {
 #' @param pheno A character or factor vector.
 #' @param ... Any arguments passed to \code{\link[ggplot2]{aes}}
 #' @return A \code{\link[ggplot2]{ggplot}} object.
+#' @export
 multiplot_tsne <- function(x, pheno, ...) {
   lapply(
     seq(length(x)),
