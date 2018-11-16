@@ -227,7 +227,9 @@ find_pc_number.var_frac <- function(eigen_values, threshold = 0.9) {
 #'
 #' The method is described in the paper by Capper et al. entitled
 #' "DNA methylation-based classification of central nervous system
-#' tumours".
+#' tumours". In brief, the method shuffles features across samples
+#' and determine the PC number by comparing the maximum of eigen
+#' values from the randomization.
 #'
 #' @param x A matrix which has columns as features and rows as samples.
 #' @param eigen_values A vector of eigen values. It is the item
