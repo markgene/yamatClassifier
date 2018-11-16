@@ -154,18 +154,19 @@ tsne_out_lst <-
   yamatClassifier::tsne(beta_vals_prj, perplexity = 5)
 
 # Plot one tSNE result
-beta_vals_prj %>%
-  as.data.frame() %>%
-  dplyr::mutate(sample_name = rownames(.)) %>%
-  dplyr::left_join(as.data.frame(pheno_df), by = c("sample_name" = "geo_accession")) %>%
-  dplyr::select(tumor_type) %>%
-  unlist() -> tumor_type
+pheno_df <- pheno_df[match(rownames(beta_vals_prj), rownames(pheno_df)), ]
 
-plot_tsne(tsne_out_lst[[1]], colour = tumor_type)
+plot_tsne(tsne_out_lst[[1]], colour = pheno_df$tumor_type)
 
 # Plot multiple tSNE results
 set.seed(456)
 idx <- sample(x = seq(length(tsne_out_lst)), size = 5)
-multiplot_tsne(tsne_out_lst[idx], pheno = tumor_type)
+multiplot_tsne(tsne_out_lst[idx], pheno = pheno_df$tumor_type)
+
+# Diagnose tSNE with coordinates plot
+diagnose_tsne.coord(tsne_out_lst, pheno = pheno_df$tumor_type)
+
+# Diagnose tSNE with correlation plot
+diagnose_tsne.cor(tsne_out_lst, pheno = pheno_df$tumor_type)
 ```
 
