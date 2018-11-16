@@ -173,4 +173,112 @@ corrplot(
 )
 ```
 
+## Principal component analysis (PCA)
+
+I will transpose the matrix because it is more common to use columns as features and rows as samples in most R functions.
+
+```{r}
+beta_vals_mvt <- t(beta_vals_mv)
+```
+
+Follow Capper's paper and the instructions on [Statistical Tools for High-Throughput Data Analysis](http://www.sthda.com/english/wiki/print.php?id=206), I carry out PCA in the following steps.
+
+1. Prepare the data: center and scale.
+2. Calculate covariance/correlation matrix.
+
+```{r pca12, eval=TRUE}
+beta_vals_mvt %>%
+  scale(., center = TRUE, scale = TRUE) %>%
+  cov() -> loci_cov
+```
+
+3. Calculate the eigenvectors and eigenvalues of the covariance matrix. Top 100 is requested. 
+
+```{r pca3, eval=TRUE}
+loci_eig <- eigs(loci_cov, k = 50)
+ggpubr::ggdensity(
+  data.frame(x = loci_eig$values),
+  "x", 
+  xlab = "PC eigenvalue",
+  ylab = "Density"
+)
+```
+
+Notice: I use `eigs()` function in *Rspectra* package instead of `eigen()` function in *base* because the matrix is large.
+
+4. Choose principal components (PCs). Following Capper's paper, I determine the number of PCs by comparing eigenvalues to the maximum eigenvalue of a PCA using randomize beta values, which is obtained by shuffing sample labels per loci.
+
+```{r figPCA4, eval=TRUE}
+# Randomize beta values.
+set.seed(123)
+lapply(
+  seq(nrow(beta_vals_mv)),
+  function(i) {
+    sample(beta_vals_mv[i, ])
+  }
+) %>%
+  do.call(rbind, .) %>%
+  as.matrix() %>%
+  t() %>%
+  cov() -> loci_cov_randomized
+
+# Calculate eigenvalues of randomized beta values.
+loci_eig_randomized <- eigs(loci_cov_randomized, k = 50)
+
+data.frame(ob = loci_eig$values, bg = loci_eig_randomized$values) %>%
+  tidyr::gather(key = "type", value = "eigenvalue") %>%
+  ggpubr::ggdensity(
+    .,
+    "eigenvalue",
+    xlab = "PC eigenvalue",
+    ylab = "Density",
+    color = "type",
+    fill = "type",
+    alpha = 0.6,
+    palette = "jco"
+  ) +
+  ggplot2::geom_vline(
+    xintercept = max(loci_eig_randomized$values),
+    linetype = "dashed",
+    color = "royalblue"
+  )
+
+pca_num <- ceiling(max(loci_eig_randomized$values))
+```
+
+It is also common approach is to calculate the fraction of total variance retained. As mentioned in the [stackflow post](https://stackoverflow.com/questions/12067446/how-many-principal-components-to-take), "if you divide each value by the total sum of eigenvalues prior to plotting, then your plot will show the fraction of total variance retained vs. number of eigenvalues". 
+
+```{r figPCA42, eval=TRUE}
+frac_var <- cumsum(loci_eig$values) / sum(loci_eig$values)
+
+threshold <- 0.95
+pca_num2 <- min(which(frac_var > threshold))
+
+data.frame(x = seq(length(frac_var)), y = frac_var) %>%
+  ggplot2::ggplot(., ggplot2::aes(x = x, y = y)) +
+  ggplot2::geom_path(colour = "royalblue") +
+  ggplot2::geom_point(colour = "royalblue") +
+  ggplot2::geom_vline(xintercept = pca_num2,
+                      colour = "coral",
+                      linetype = "dashed") +
+  ggplot2::geom_hline(yintercept = threshold,
+                      colour = "coral",
+                      linetype = "dashed")
+```
+
+I choose the larger one.
+
+```{r pca43, eval=TRUE}
+if (pca_num < pca_num2)
+  pca_num <- pca_num2
+```
+
+5. Compute the new dataset.
+
+```{r pca5}
+phi <- loci_eig$vectors[, seq(pca_num)]
+row.names(phi) <- colnames(beta_vals_mvt)
+colnames(phi) <- paste0("PC", seq(pca_num))
+beta_vals_transformed <- beta_vals_mvt %*% phi
+```
 
