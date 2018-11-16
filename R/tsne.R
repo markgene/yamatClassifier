@@ -113,3 +113,23 @@ diagnose_tsne.coord <- function(x, pheno, ...) {
 }
 
 
+#' Diagnose multiple tSNE runs with the correlations of coordinates.
+#'
+#' @param x A list of the returned value of \code{\link[RTsne]{RTsne}}
+#'   which itself is a list.
+#' @param pheno A character or factor vector.
+#' @param ... Any arguments passed to \code{\link[ggplot2]{aes}}
+#' @return A \code{\link[ggplot2]{ggplot}} object.
+#' @export
+diagnose_tsne.cor <- function(x, pheno, ...) {
+  df <- lapply(
+    seq(length(x)),
+    function(i) {
+      as.data.frame(x[[i]]$Y)
+    }) %>%
+    do.call(cbind, .)
+  p2 <- rep(seq(length(x)), each = 2)
+  p3 <- rep(c("X", "Y"), length(x))
+  colnames(df) <- paste0(p2, p3)
+  correlogram(t(df), pheno)
+}
