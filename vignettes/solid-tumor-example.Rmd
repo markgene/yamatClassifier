@@ -90,7 +90,10 @@ pheno_df$tumor_type <- as.factor(pheno_df$`diagnosis:ch1`) %>%
 save(pheno_df, file = file.path(data_dir, "pheno_df.Rda"))
 ```
 
-# Most variably methylated loci
+# Unsupervised analysis
+## Most variably methylated loci
+
+I use the most variably methylated loci in the unsupervised analysis. I choose 5000 most variable loci. You can choose a different number for your data through exploratory analysis, taking account of the number of samples.
 
 ```{r most_variable_loci, eval=TRUE}
 load(file.path(data_dir, "beta_vals.Rda"))
@@ -101,11 +104,11 @@ beta_vals_mv <-
   yamatClassifier::most_variable(beta_vals, top_n = top_n)
 ```
 
-```{r density_plot_loci, eval=TRUE}
+```{r figLociBetaSD, eval=TRUE, fig.cap="Distribution of standard deviations of beta values across loci. The vertical line is the threshold of 5000 most variable loci."}
 yamatClassifier::density_plot_row_sd(beta_vals, top_n = top_n)
 ```
 
-# Correlation between samples
+## Correlation between samples
 
 I use the most variably methylated loci to calculate pairwise Pearson's correlation coefficients between samples, carry out hierarchical clustering, and visualize the result in heat map.
 
