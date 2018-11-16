@@ -159,9 +159,13 @@ shuffle_matrix.row <- function(x) {
 }
 #' Find PC number: Capper's method.
 #'
+#' The method is described in the paper by Capper et al. entitled
+#' "DNA methylation-based classification of central nervous system
+#' tumours".
+#'
 #' @param x A matrix which has columns as features and rows as samples.
 #' @param eigen_values A vector of eigen values. It is the item
-#'   \code{vectors} of the item \code{eigs} of the returned value of
+#'   \code{values} of the item \code{eigs} of the returned value of
 #'   \code{\link{pca123}}, which is returned by
 #'   \code{\link[RSpectra]{eigs}}.
 #' @return A list of three items:
