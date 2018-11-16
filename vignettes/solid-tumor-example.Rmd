@@ -9,6 +9,7 @@ author:
     affiliation: SJCRH
     affiliation_url: https://www.stjude.org/
 date: "`r Sys.Date()`"
+citation_url: https://github.com/markgene/yamatClassifier
 output: 
   radix::radix_article:
     toc: true
