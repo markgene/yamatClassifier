@@ -238,14 +238,15 @@ find_pc_number.var_frac <- function(eigen_values, threshold = 0.9) {
 #'   \code{\link[RSpectra]{eigs}}.
 #' @return A list of three items:
 #'   \itemize{
-#'     \item \code{pca_num} An integer scalar of PC number.
+#'     \item \code{pc_num} An integer scalar of PC number.
 #'     \item \code{variance_fraction} The sum of fraction of variance
-#'       of \code{pca_num} PCs.
+#'       of \code{pc_num} PCs.
 #'    \item \code{eigs_shuffled} A numeric vector of eigen values of
 #'       the randomized data.
 #'     \item \code{plot} A \code{\link[ggplot2]{ggplot}} object of
 #'       density plot of eigenvalues of observed and randomized data.
 #'   }
+#' @export
 find_pc_number.capper <- function(x, eigen_values) {
   .check_args_find_pc_number(x, eigen_values)
   k <- length(eigen_values)
@@ -254,11 +255,11 @@ find_pc_number.capper <- function(x, eigen_values) {
   output <- list()
   # Number of PCs whose eigenvalues are larger the maximum of the
   # randomized data.
-  pca_num <- sum(eigen_values > max(res_shuffled$eigs$values))
+  pc_num <- sum(eigen_values > max(res_shuffled$eigs$values))
   frac_var <- cumsum(eigen_values) / sum(eigen_values)
   output$eigs_shuffled <- res_shuffled$eigs$values
-  output$pca_num <- pca_num
-  output$variance_fraction <- frac_var[pca_num]
+  output$pc_num <- pc_num
+  output$variance_fraction <- frac_var[pc_num]
   # Plot
   data.frame(observed = eigen_values,
              randomized = res_shuffled$eigs$values) %>%
@@ -296,30 +297,31 @@ find_pc_number.capper <- function(x, eigen_values) {
 #' @param n An integer scalar of randomization times. Default to 30.
 #' @return A list of three items:
 #'   \itemize{
-#'     \item \code{pca_num} An integer scalar of PC number.
+#'     \item \code{pc_num} An integer scalar of PC number.
 #'     \item \code{variance_fraction} The sum of fraction of variance
-#'       of \code{pca_num} PCs.
+#'       of \code{pc_num} PCs.
 #'     \item \code{raw} A \code{data.frame} of maximum eigen values
 #'       and PC numbers.
 #'   }
 #' @note The Capper and yamat methods gives the same number of PCs
 #'   on solid tumor example.
+#' @export
 find_pc_number.yamat <- function(x, eigen_values, n = 30) {
   .check_args_find_pc_number(x, eigen_values)
   lapply(
     seq(n),
     function(i) {
       res <- find_pc_number.capper(x, eigen_values)
-      data.frame(pca_num = res$pca_num,
+      data.frame(pc_num = res$pc_num,
                  max_eigs = max(res$eigs_shuffled))
     }
   ) %>%
     do.call(rbind, .) -> trials
-  pca_num <- sum(eigen_values > mean(trials$max_eigs))
+  pc_num <- sum(eigen_values > mean(trials$max_eigs))
   frac_var <- cumsum(eigen_values) / sum(eigen_values)
   output <- list()
-  output$pca_num <- pca_num
-  output$variance_fraction <- frac_var[pca_num]
+  output$pc_num <- pc_num
+  output$variance_fraction <- frac_var[pc_num]
   output$raw <- trials
   output
 }
