@@ -80,7 +80,7 @@ pca123 <- function(x, k = 50) {
   # matrix. Top k is requested.
   # Notice: I use eigs() function in Rspectra package instead of
   # eigen() function in base because the matrix is large.
-  x_eig <- eigs(x_scaled_cor, k = k)
+  x_eig <- RSpectra::eigs(x_scaled_cor, k = k)
   ggpubr::ggdensity(
     data.frame(x = x_eig$values),
     "x",
