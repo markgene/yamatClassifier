@@ -201,25 +201,26 @@ beta_vals_prj <- pca_res$projected
 
 ## tSNE
 
-```{r}
-set.seed(125) # Sets seed for reproducibility
-tsne_out <- Rtsne(beta_vals_transformed, perplexity = 5) # Run TSNE
-col <- RColorBrewer::brewer.pal(3, name = "Dark2")
-tsne_out$Y %>%
+```{r tsne, eval=TRUE}
+# Sets seed for reproducibility
+set.seed(125) 
+# Run tSNE
+tsne_out_lst <-
+  yamatClassifier::tsne(beta_vals_prj, perplexity = 5)
+
+# Plot one tSNE result
+beta_vals_prj %>%
   as.data.frame() %>%
-  ggplot(., aes(
-    x = V1,
-    y = V2,
-    colour = df$`diagnosis:ch1`,
-    label = df$geo_accession
-  )) +
-  geom_point() +
-  labs(x = "", y = "", colour = "Diagnosis") +
-  ggtitle("t-SNE") +
-  theme_light() +
-  theme(axis.text.x = element_blank(),
-        axis.text.y = element_blank()) +
-  # ggrepel::geom_text_repel() + 
-  scale_colour_brewer(palette = "Set2")
+  dplyr::mutate(sample_name = rownames(.)) %>%
+  dplyr::left_join(as.data.frame(pheno_df), by = c("sample_name" = "geo_accession")) %>%
+  dplyr::select(tumor_type) %>%
+  unlist() -> tumor_type
+
+plot_tsne(tsne_out_lst[[1]], colour = tumor_type)
+
+# Plot multiple tSNE results
+set.seed(456)
+idx <- sample(x = seq(length(tsne_out_lst)), size = 5)
+multiplot_tsne(tsne_out_lst[idx], pheno = tumor_type)
 ```
 
