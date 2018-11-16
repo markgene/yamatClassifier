@@ -85,6 +85,30 @@ pca123 <- function(x, k = 50) {
 }
 
 
+#' Shuffle matrix.
+#'
+#' Each row or column is shuffled separately. To reproduce the result,
+#' set the seed before running the function.
+#'
+#' @param x A matrix.
+#' @param margin A character scalar, either "row" or "column". Default
+#'   to "column", because columns are usually used as features.
+#' @return A matrix.
+#' @export
+shuffle_matrix <- function(x, margin = c("column", "row")) {
+  if (missing(x))
+    stop("Argument x is required.")
+  if (!is.matrix(x))
+    stop("Argument x should be a matrix.")
+  margin <- match.arg(margin)
+  switch(margin,
+    column = shuffle_matrix.column(x),
+    row = shuffle_matrix.row(x)
+  )
+}
+
+
+
 #' Shuffle matrix by column.
 #'
 #' Each column is shuffled separately. To reproduce the result, set the
@@ -92,6 +116,7 @@ pca123 <- function(x, k = 50) {
 #'
 #' @param x A matrix.
 #' @return A matrix.
+#' @noRd
 shuffle_matrix.column <- function(x) {
   lapply(
     seq(ncol(x)),
