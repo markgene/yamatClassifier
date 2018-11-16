@@ -19,7 +19,8 @@ Imports:
     RSpectra (>= 0.13.1),
     Rtsne (>= 0.13),
     dplyr (>= 0.7.8),
-    tidyr (>= 0.8)
+    tidyr (>= 0.8),
+    corrplot (>= 0.84)
 Suggests: knitr,
     rmarkdown,
     testthat
