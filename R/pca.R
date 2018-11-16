@@ -103,3 +103,23 @@ shuffle_matrix.column <- function(x) {
     as.matrix() %>%
     t() -> x_shuffled
 }
+
+
+#' Shuffle matrix by row.
+#'
+#' Each row is shuffled separately. To reproduce the result, set the
+#' seed before running the function.
+#'
+#' @param x A matrix.
+#' @return A matrix.
+#' @noRd
+shuffle_matrix.row <- function(x) {
+  lapply(
+    seq(nrow(x)),
+    function(i) {
+      sample(x[i, ])
+    }
+  ) %>%
+    do.call(rbind, .) %>%
+    as.matrix() -> x_shuffled
+}
