@@ -39,6 +39,10 @@ library(RSpectra)
 
 # Data
 
+I use the data from the paper by S. Peter Wu et al. entitled [DNA Methylation–Based Classifier for Accurate Molecular Diagnosis of Bone Sarcomas](http://ascopubs.org/doi/full/10.1200/PO.17.00031). It has 36 samples. However, I borrow the methodology manily from the paper by David Capper et al. entitled [DNA methylation-based classification of central nervous system tumours](https://www.nature.com/articles/nature26000).
+
+Download the data from GEO to local directory.
+
 ```{r data_dir, eval=TRUE}
 # Download data
 gse_acc <- "GSE97529"
@@ -50,6 +54,8 @@ rgset <- yamat::get_gse(gse_acc, data_dir)
 save(rgset, file = file.path(data_dir, "rgset.Rda"))
 ```
 
+Normalization. I do not carry out batch effect correction or filtering out probes in this example. But, it is recommended to perform them in real analyses.
+
 ```{r norm, eval=FALSE}
 # Load pre-calculated.
 load(file.path(data_dir, "rgset.Rda"))
@@ -58,12 +64,15 @@ load(file.path(data_dir, "rgset.Rda"))
 gmset <- yamat::normalize(rgset = rgset, norm_method = "swan")
 ```
 
+Obtain the beta values.
+
 ```{r beta, eval=FALSE}
 # Beta values
 beta_vals <- minfi::getBeta(gmset, offset = 100)
 save(beta_vals, file = file.path(data_dir, "beta_vals.Rda"))
 ```
 
+Obtain and tidy the phenotype data. I add an column of tumor type abbreviations.
 
 ```{r tidy_pheno, eval=FALSE}
 # Load pre-calculated.
