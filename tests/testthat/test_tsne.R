@@ -14,5 +14,10 @@ test_that(
     res <- tsne(x = x, n = 3, perplexity = 2)
     expect_error(plot_tsne(res[[1]]), NA)
     expect_error(multiplot_tsne(res, pheno = mtcars$cyl), NA)
+    expect_error(diagnose_tsne.coord(res, pheno = mtcars$cyl), NA)
+    expect_error(diagnose_tsne.cor(res, pheno = mtcars$cyl), NA)
   }
 )
+
+if (file.exists("Rplots.pdf"))
+  file.remove("Rplots.pdf")
