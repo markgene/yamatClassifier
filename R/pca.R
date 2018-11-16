@@ -179,14 +179,7 @@ shuffle_matrix.row <- function(x) {
 #'       density plot of eigenvalues of observed and randomized data.
 #'   }
 find_pc_number.capper <- function(x, eigen_values) {
-  if (missing(x))
-    stop("Argument x is required.")
-  if (!is.matrix(x))
-    stop("Argument x should be a matrix.")
-  if (missing(eigen_values))
-    stop("Argument eigen_values is required.")
-  if (!is.numeric(eigen_values))
-    stop("Argument eigen_values should be a numeric vector.")
+  .check_args_find_pc_number(x, eigen_values)
   k <- length(eigen_values)
   x_shuffled <- shuffle_matrix(x, margin = "col")
   res_shuffled <- pca123(x_shuffled, k = k)
@@ -218,4 +211,14 @@ find_pc_number.capper <- function(x, eigen_values) {
       color = "royalblue"
     ) -> output$plot
    output
+}
+.check_args_find_pc_number <- function(x, eigen_values) {
+  if (missing(x))
+    stop("Argument x is required.")
+  if (!is.matrix(x))
+    stop("Argument x should be a matrix.")
+  if (missing(eigen_values))
+    stop("Argument eigen_values is required.")
+  if (!is.numeric(eigen_values))
+    stop("Argument eigen_values should be a numeric vector.")
 }
