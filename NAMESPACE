@@ -2,5 +2,10 @@
 
 export("%>%")
 export(density_plot_row_sd)
+export(find_pc_number.capper)
+export(find_pc_number.var_frac)
+export(find_pc_number.yamat)
 export(most_variable)
+export(pca)
+export(shuffle_matrix)
 importFrom(magrittr,"%>%")
