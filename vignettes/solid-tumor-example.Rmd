@@ -156,7 +156,9 @@ tsne_out_lst <-
 # Plot one tSNE result
 pheno_df <- pheno_df[match(rownames(beta_vals_prj), rownames(pheno_df)), ]
 
-plot_tsne(tsne_out_lst[[1]], colour = pheno_df$tumor_type)
+plot_tsne(tsne_out_lst[[1]],
+          colour = pheno_df$tumor_type,
+          label = pheno_df$geo_accession)
 
 # Plot multiple tSNE results
 set.seed(456)
