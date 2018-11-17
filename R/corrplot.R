@@ -10,7 +10,8 @@
 correlogram <- function(x, pheno, ...) {
   # Reorder
   M <- cor(x)
-  dd <- as.dist((1 - M) / 2)
+  # dd <- as.dist((1 - M) / 2)
+  dd <- dist(x)
   hc <- hclust(dd)
   pheno <- pheno[hc$order]
   M <- M[hc$order, hc$order]
