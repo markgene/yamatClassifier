@@ -29,6 +29,7 @@ library(yamat)
 library(yamatClassifier)
 library(ggplot2)
 library(ggpubr)
+library(ggsci)
 library(corrplot)
 library(RColorBrewer)
 library(plyr)
@@ -154,7 +155,7 @@ ggplot2::ggplot(
 ) +
   geom_point() +
   labs(color = "Tumor type") +
-  scale_color_aaas() +
+  ggsci::scale_color_aaas() +
   ggpubr::theme_pubr()
 ```
 
