@@ -36,6 +36,7 @@ correlogram <- function(x, pheno, ...) {
     order = "original",
     tl.col = pal[pheno],
     tl.pos = "l",
+    tl.cex = 0.6,
     # Combine with significance
     p.mat = p.mat,
     sig.level = 0.01,

@@ -6,12 +6,12 @@ description: |
 author:
   - name: Mark Chen
     url: https://markgene.github.io/
-    affiliation: SJCRH
-    affiliation_url: https://www.stjude.org/
+    affiliation: Cleveland Clinic
+    affiliation_url: https://www.ccf.org/
 date: "`r Sys.Date()`"
 citation_url: https://github.com/markgene/yamatClassifier
 output: 
-  radix::radix_article:
+  distill::distill_article:
     toc: true
 ---
 
@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   eval = FALSE,
-  echo = TRUE
+  echo = FALSE
 )
 ```
 
@@ -35,6 +35,7 @@ library(plyr)
 library(dplyr)
 library(RSpectra)
 library(Rtsne)
+library(rmarkdown)
 ```
 
 
@@ -142,6 +143,19 @@ t(beta_vals_mv) %>%
     threshold = 0.9
   ) -> pca_res
 beta_vals_prj <- pca_res$projected
+
+ggplot2::ggplot(
+  data = data.frame(
+    PC1 = beta_vals_prj[, "PC1"],
+    PC2 = beta_vals_prj[, "PC2"],
+    tumor_type = pheno_df$tumor_type
+  ),
+  mapping = aes(x = PC1, y = PC2, color = tumor_type)
+) +
+  geom_point() +
+  labs(color = "Tumor type") +
+  scale_color_aaas() +
+  ggpubr::theme_pubr()
 ```
 
 ## tSNE
@@ -169,6 +183,397 @@ multiplot_tsne(tsne_out_lst[idx], pheno = pheno_df$tumor_type)
 diagnose_tsne.coord(tsne_out_lst, pheno = pheno_df$tumor_type)
 
 # Diagnose tSNE with correlation plot
-diagnose_tsne.cor(tsne_out_lst, pheno = pheno_df$tumor_type)
+# diagnose_tsne.cor(tsne_out_lst, pheno = pheno_df$tumor_type)
 ```
+
+# Tumor classifier by random forest
+
+## Performance
+
+Divide 36 samples into training data set of 25 samples and testing data set of 11 samples by stratification sampling method.
+
+```{r eval=FALSE}
+library(randomForest)
+
+data4mod_df <- cbind(as.data.frame(t(beta_vals_mv)), data.frame(tumor_type = pheno_df$tumor_type))
+
+set.seed(42)
+train_data <- data4mod_df %>%
+  tibble::rownames_to_column(var = "sample_id") %>%
+  dplyr::group_by(tumor_type) %>%
+  dplyr::sample_frac(0.7)
+
+test_data <- data4mod_df[!rownames(data4mod_df) %in% train_data$sample_id, ]
+train_data$sample_id <- NULL
+
+rf_model <- randomForest(formula = tumor_type ~ ., data = train_data, ntree = 500)
+predictions <- predict(rf_model, newdata = test_data)
+
+# Evaluate the model (for a classification problem)
+confusion_matrix <- table(predictions, test_data$tumor_type)
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+confusion_matrix
+
+save(rf_model, train_data, test_data, file = file.path(data_dir, "rf_model.Rda"))
+```
+
+Confusion matrix:
+
+```default
+predictions EWS OS SS
+        EWS   3  0  0
+        OS    0  5  0
+        SS    0  0  3
+```
+
+## What are the most important CpG sites to the classifier?
+
+Importance measured by decrease Gini. Top 10 CpG sites for example:
+
+```{r eval=TRUE}
+library(randomForest)
+
+load(file.path(data_dir, "rf_model.Rda"))
+
+# Importance CpG sites
+cgs_top200 <- importance(rf_model) %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column(var = "cg") %>%
+  dplyr::arrange(desc(MeanDecreaseGini)) %>%
+  dplyr::slice_head(n = 200)
+
+# Genomic locations
+library(IlluminaHumanMethylation450kanno.ilmn12.hg19)
+data(Locations)
+
+cgs_top200_locations <- Locations[rownames(Locations) %in% cgs_top200$cg, ] %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column(var = "cg") %>%
+  dplyr::left_join(cgs_top200, by = "cg") %>%
+  dplyr::arrange(desc(MeanDecreaseGini))
+
+cgs_top200_locations %>%
+  head(10) %>%
+  paged_table()
+```
+
+### What genes are those CpG sites associated with?
+
+Annotate the CgG sites to nearby genes:
+
+```{r eval=FALSE}
+library(ChIPseeker)
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+library(org.Hs.eg.db)
+library(GenomicRanges)
+
+cgs_top200_gr <- makeGRangesFromDataFrame(
+  df = cgs_top200_locations, 
+  keep.extra.columns = TRUE, 
+  start.field = "pos", end.field = "pos")
+
+cgs_top200_anno <- annotatePeak(
+  cgs_top200_gr,
+  tssRegion = c(-3000, 3000),
+  TxDb = TxDb.Hsapiens.UCSC.hg19.knownGene,
+  annoDb = "org.Hs.eg.db",
+  level = "gene",
+  addFlankGeneInfo = TRUE,
+  columns = c("SYMBOL", "GENENAME", "ENTREZID", "ENSEMBL"))
+
+save(cgs_top200_anno, file = file.path(data_dir, "cgs_top200_anno.Rda"))
+```
+
+```{r eval=TRUE}
+load(file.path(data_dir, "cgs_top200_anno.Rda"))
+as.data.frame(cgs_top200_anno@anno) %>%
+  dplyr::select(cg, seqnames, start, strand, MeanDecreaseGini, annotation, SYMBOL) %>%
+  head(n=10) %>%
+  paged_table()
+```
+
+### What are related pathways and cell types and etc?
+
+Enrichment analysis against MSigDB, annotated genes sets of cancer hallmark, ontology, pathway, regulatory target genes, immunologic signature, cell type signature and etc.
+
+```{r eval=FALSE}
+# General
+library(dplyr)
+library(glue)
+library(RColorBrewer)
+library(ggplot2)
+library(cowplot)
+library(ggsci)
+library(patchwork)
+library(openxlsx)
+
+# Bioinformatics
+library(msigdbr)
+library(clusterProfiler)
+library(DOSE)
+
+msigdb_info <- function(species = "Homo sapiens", rda_file = file.path(data_dir, "msigdb_info.Rda")) {
+  if (file.exists(rda_file)) {
+    message("Load pre-calculated")
+    load(rda_file, envir = .GlobalEnv)
+  } else {
+    message("Collating...")
+    # Gene-term
+    Hallmark.df <- msigdbr::msigdbr(category = "H", species = species)
+    C2.df <- msigdbr::msigdbr(category = "C2", species = species)
+    C3.df <- msigdbr::msigdbr(category = "C3", species = species)
+    C4.df <- msigdbr::msigdbr(category = "C4", species = species)
+    C5.df <- msigdbr::msigdbr(category = "C5", species = species)
+    C6.df <- msigdbr::msigdbr(category = "C6", species = species)
+    C7.df <- msigdbr::msigdbr(category = "C7", species = species)
+    C8.df <- msigdbr::msigdbr(category = "C8", species = species)
+    gene_term.df <- rbind(
+      Hallmark.df,
+      C2.df,
+      C3.df,
+      C4.df,
+      C5.df,
+      C6.df,
+      C7.df,
+      C8.df
+    )
+    unique(gene_term.df$gs_name) -> gene_term_gs_name
+
+    gene_term.df %>%
+      dplyr::select(starts_with("gs_")) %>%
+      dplyr::distinct() -> gs.df
+
+    save(
+      gene_term.df,
+      gene_term_gs_name,
+      gs.df,
+      file = rda_file
+    )
+  }
+  gene_term.df
+}
+
+
+#' Add gene set info
+add_msigdb_info <- function(or_obj, geneset_info.df) {
+  or_obj %>%
+    as.data.frame() %>%
+    dplyr::left_join(geneset_info.df, by = c("ID" = "gs_name"))
+}
+
+#' Over-presentation
+or.msigdb <- function(anno,
+                      species = "Homo sapiens",
+                      excel_file,
+                      pAdjustMethod = "BH",
+                      pvalueCutoff = 1,
+                      qvalueCutoff = 1,
+                      minGSSize = 5,
+                      maxGSSize = 10000) {
+  if (class(anno) == "csAnno") {
+    anno@anno %>%
+      as.data.frame() %>%
+      dplyr::pull(geneId) %>%
+      unique() -> entrez_gene_list
+
+    anno@anno %>%
+      as.data.frame() %>%
+      dplyr::pull(SYMBOL) %>%
+      unique() -> gene_symbol_list
+  } else if (class(anno) == "data.frame") {
+    anno %>%
+      dplyr::pull(geneId) %>%
+      unique() -> entrez_gene_list
+
+    anno %>%
+      dplyr::pull(SYMBOL) %>%
+      unique() -> gene_symbol_list
+  } else {
+    stop("Unrecognized object class")
+  }
+
+  gene_term.df <- msigdb_info(species = species)
+  gene_term.df %>%
+    dplyr::select(gs_cat, gs_subcat, gs_name, gs_description) %>%
+    dplyr::distinct() -> geneset_info.df
+
+  message("MSigDB Hallmark")
+  hallmark_t2g <-
+    msigdbr(species = species, category = "H") %>%
+    dplyr::select(gs_name, gene_symbol)
+  or_hallmark <-
+    enricher(
+      gene = gene_symbol_list,
+      TERM2GENE = hallmark_t2g,
+      pAdjustMethod = pAdjustMethod,
+      pvalueCutoff = pvalueCutoff,
+      qvalueCutoff = qvalueCutoff,
+      minGSSize = minGSSize,
+      maxGSSize = maxGSSize,
+    )
+
+  message("MSigDB C2")
+  c2_t2g <- msigdbr(species = species, category = "C2") %>%
+    dplyr::select(gs_name, gene_symbol)
+  or_c2 <-
+    enricher(
+      gene = gene_symbol_list,
+      TERM2GENE = c2_t2g,
+      pAdjustMethod = pAdjustMethod,
+      pvalueCutoff = pvalueCutoff,
+      qvalueCutoff = qvalueCutoff,
+      minGSSize = minGSSize,
+      maxGSSize = maxGSSize,
+    )
+
+  message("MSigDB C3")
+  c3_t2g <- msigdbr(species = species, category = "C3") %>%
+    dplyr::select(gs_name, gene_symbol)
+  or_c3 <-
+    enricher(
+      gene = gene_symbol_list,
+      TERM2GENE = c3_t2g,
+      pAdjustMethod = pAdjustMethod,
+      pvalueCutoff = pvalueCutoff,
+      qvalueCutoff = qvalueCutoff,
+      minGSSize = minGSSize,
+      maxGSSize = maxGSSize,
+    )
+
+  message("MSigDB C4")
+  c4_t2g <- msigdbr(species = species, category = "C4") %>%
+    dplyr::select(gs_name, gene_symbol)
+  or_c4 <-
+    enricher(
+      gene = gene_symbol_list,
+      TERM2GENE = c4_t2g,
+      pAdjustMethod = pAdjustMethod,
+      pvalueCutoff = pvalueCutoff,
+      qvalueCutoff = qvalueCutoff,
+      minGSSize = minGSSize,
+      maxGSSize = maxGSSize,
+    )
+
+  message("MSigDB C5")
+  c5_t2g <- msigdbr(species = species, category = "C5") %>%
+    dplyr::select(gs_name, gene_symbol)
+  or_c5 <-
+    enricher(
+      gene = gene_symbol_list,
+      TERM2GENE = c5_t2g,
+      pAdjustMethod = pAdjustMethod,
+      pvalueCutoff = pvalueCutoff,
+      qvalueCutoff = qvalueCutoff,
+      minGSSize = minGSSize,
+      maxGSSize = maxGSSize,
+    )
+
+  message("MSigDB C6")
+  c6_t2g <- msigdbr(species = species, category = "C6") %>%
+    dplyr::select(gs_name, gene_symbol)
+  or_c6 <-
+    enricher(
+      gene = gene_symbol_list,
+      TERM2GENE = c6_t2g,
+      pAdjustMethod = pAdjustMethod,
+      pvalueCutoff = pvalueCutoff,
+      qvalueCutoff = qvalueCutoff,
+      minGSSize = minGSSize,
+      maxGSSize = maxGSSize,
+    )
+
+  message("MSigDB C7")
+  c7_t2g <- msigdbr(species = species, category = "C7") %>%
+    dplyr::select(gs_name, gene_symbol)
+  or_c7 <-
+    enricher(
+      gene = gene_symbol_list,
+      TERM2GENE = c7_t2g,
+      pAdjustMethod = pAdjustMethod,
+      pvalueCutoff = pvalueCutoff,
+      qvalueCutoff = qvalueCutoff,
+      minGSSize = minGSSize,
+      maxGSSize = maxGSSize,
+    )
+
+  message("MSigDB C8")
+  c8_t2g <- msigdbr(species = species, category = "C8") %>%
+    dplyr::select(gs_name, gene_symbol)
+  or_c8 <-
+    enricher(
+      gene = gene_symbol_list,
+      TERM2GENE = c8_t2g,
+      pAdjustMethod = pAdjustMethod,
+      pvalueCutoff = pvalueCutoff,
+      qvalueCutoff = qvalueCutoff,
+      minGSSize = minGSSize,
+      maxGSSize = maxGSSize,
+    )
+
+  library(openxlsx)
+  wb <- createWorkbook()
+  addWorksheet(wb, "Hallmark")
+  writeData(wb, sheet = "Hallmark", add_msigdb_info(or_hallmark, geneset_info.df))
+  addWorksheet(wb, "MSigDB C2")
+  writeData(wb, sheet = "MSigDB C2", add_msigdb_info(or_c2, geneset_info.df))
+  addWorksheet(wb, "MSigDB C3")
+  writeData(wb, sheet = "MSigDB C3", add_msigdb_info(or_c3, geneset_info.df))
+  addWorksheet(wb, "MSigDB C4")
+  writeData(wb, sheet = "MSigDB C4", add_msigdb_info(or_c4, geneset_info.df))
+  addWorksheet(wb, "MSigDB C5")
+  writeData(wb, sheet = "MSigDB C5", add_msigdb_info(or_c5, geneset_info.df))
+  addWorksheet(wb, "MSigDB C6")
+  writeData(wb, sheet = "MSigDB C6", add_msigdb_info(or_c6, geneset_info.df))
+  addWorksheet(wb, "MSigDB C7")
+  writeData(wb, sheet = "MSigDB C7", add_msigdb_info(or_c7, geneset_info.df))
+  addWorksheet(wb, "MSigDB C8")
+  writeData(wb, sheet = "MSigDB C8", add_msigdb_info(or_c8, geneset_info.df))
+  addWorksheet(wb, "Gene list")
+  writeData(wb, sheet = "Gene list", gene_symbol_list)
+  saveWorkbook(wb,
+               file = excel_file,
+               overwrite = TRUE)
+
+  list(
+    hallmark = or_hallmark,
+    c2 = or_c2,
+    c3 = or_c3,
+    c4 = or_c4,
+    c5 = or_c5,
+    c6 = or_c6,
+    c7 = or_c7,
+    c8 = or_c8
+  )
+}
+```
+
+
+In which gene sets are genes associated with top 200 important CpG sites over-represented?
+
+```{r eval=FALSE}
+cgs_top200_or <- or.msigdb(cgs_top200_anno, excel_file = file.path(data_dir, "cgs_top200_or.xlsx"))
+save(cgs_top200_or, file = file.path(data_dir, "cgs_top200_or.Rda"))
+```
+
+For example, cell type signature:
+
+```{r eval=TRUE}
+load(file.path(data_dir, "cgs_top200_or.Rda"))
+cgs_top200_or$c8 %>%
+  as.data.frame() %>%
+  dplyr::select(GeneRatio, BgRatio, pvalue, p.adjust, geneID) %>%
+  head(n = 3) %>%
+  paged_table()
+```
+
+HAY_BONE_MARROW_STROMAL is a cell type signature.
+Hay, Stuart B., et al. "The Human Cell Atlas bone marrow single-cell interactive web portal." Experimental hematology 68 (2018): 51-61.
+
+> The cancer methylome is a combination of both somatically acquired DNA methylation changes and characteristics that reflect the cell of origin. The latter property enables, for example, the tracing of the primary site of highly dedifferentiated metastases of cancers of unknow origin.
+> -- Capper, D., Jones, D., Sill, M. et al. DNA methylation-based classification of central nervous system tumours. Nature 555, 469–474 (2018). https://doi.org/10.1038/nature26000
+
+This seems an example of the latter, - methylation status reflects cell of origin.
+
+
 
