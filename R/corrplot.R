@@ -11,7 +11,7 @@ correlogram <- function(x, pheno, ...) {
   # Reorder
   M <- cor(x)
   # dd <- as.dist((1 - M) / 2)
-  dd <- dist(x)
+  dd <- dist(t(x))
   hc <- hclust(dd)
   pheno <- pheno[hc$order]
   M <- M[hc$order, hc$order]
@@ -23,12 +23,16 @@ correlogram <- function(x, pheno, ...) {
     grDevices::colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
   pal <- .custom_pal(length(unique(pheno)))
   # Rename sample to pheno
-  rownames(M) <- pheno
+  sample_pheno_name <- paste(rownames(M), pheno, sep = "_")
+  rownames(M) <- rownames(p.mat) <- colnames(p.mat) <- sample_pheno_name
   # Plot.
   corrplot::corrplot(
     M,
     method = "color",
-    col = col(200),
+    #addrect = 3,
+    #rect.col = "black",
+    #rect.lwd = 3,
+    col = rev(col(200)),
     order = "original",
     tl.col = pal[pheno],
     tl.pos = "l",
