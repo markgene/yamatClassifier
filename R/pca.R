@@ -40,10 +40,13 @@ pca <- function(x, k = 50, seed = 1, threshold = 0.9) {
   # Step 1-3
   res <- pca123(x, k = k)
   # Step 4 Choose principal components (PCs).
+  logger::log_debug("Finding PC number - Capper approach")
   set.seed(seed = seed)
   capper_res <- find_pc_number.capper(x, res$eigs$values)
+  logger::log_debug("Finding PC number - fraction of variance")
   vf_res <- find_pc_number.var_frac(res$eigs$values, threshold)
   pc_num <- max(capper_res$pc_num, vf_res$pc_num)
+  logger::log_debug("Fetching PCs")
   x_projected <- project_pc(pca123_res = res, pc_num = pc_num)
   list(
     pca123 = res,
@@ -78,14 +81,18 @@ pca <- function(x, k = 50, seed = 1, threshold = 0.9) {
 #'   with large matrix.
 pca123 <- function(x, k = 50) {
   # Step 1 Center and scale.
+  logger::log_debug("Scale and center")
   x_scaled <- scale(x, center = TRUE, scale = TRUE)
   # Step 2 Compute the correlation/covariance matrix.
+  logger::log_debug("Computing correlation/covariance matrix")
   x_scaled_cor <- cov(x_scaled)
   # Step 3 Calculate the eigenvectors and eigenvalues of the covariance
   # matrix. Top k is requested.
   # Notice: I use eigs() function in Rspectra package instead of
   # eigen() function in base because the matrix is large.
+  logger::log_debug("Calculating eigen")
   x_eig <- RSpectra::eigs(x_scaled_cor, k = k)
+  logger::log_debug("Eigenvalue vs density plot")
   ggpubr::ggdensity(
     data.frame(x = x_eig$values),
     "x",
