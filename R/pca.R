@@ -36,7 +36,10 @@
 #'   instead of \code{\link[base]{eigen}} function in base to deal
 #'   with large matrix.
 #' @export
-pca <- function(x, k = 50, seed = 1, threshold = 0.9) {
+pca <- function(x,
+                k = 50,
+                seed = 1,
+                threshold = 0.9) {
   # Step 1-3
   res <- pca123(x, k = k)
   # Step 4 Choose principal components (PCs).
@@ -48,12 +51,14 @@ pca <- function(x, k = 50, seed = 1, threshold = 0.9) {
   pc_num <- max(capper_res$pc_num, vf_res$pc_num)
   logger::log_debug("Fetching PCs")
   x_projected <- project_pc(pca123_res = res, pc_num = pc_num)
-  list(
+  res <- list(
     pca123 = res,
     capper = capper_res,
     vf = vf_res,
     projected = x_projected
   )
+  class(res) <- "pca_result"
+  return(res)
 }
 
 
@@ -93,16 +98,18 @@ pca123 <- function(x, k = 50) {
   logger::log_debug("Calculating eigen")
   x_eig <- RSpectra::eigs(x_scaled_cor, k = k)
   logger::log_debug("Eigenvalue vs density plot")
-  ggpubr::ggdensity(
-    data.frame(x = x_eig$values),
-    "x",
-    xlab = "PC eigenvalue",
-    ylab = "Density"
-  ) -> eig_density_plot
-  list(scaled = x_scaled,
-       cor_mat = x_scaled_cor,
-       eigs = x_eig,
-       plot = eig_density_plot)
+  ggpubr::ggdensity(data.frame(x = x_eig$values),
+                    "x",
+                    xlab = "PC eigenvalue",
+                    ylab = "Density") -> eig_density_plot
+  res <- list(
+    scaled = x_scaled,
+    cor_mat = x_scaled_cor,
+    eigs = x_eig,
+    plot = eig_density_plot
+  )
+  class(res) <- "pca123"
+  return(res)
 }
 
 
@@ -142,10 +149,7 @@ shuffle_matrix <- function(x, margin = c("column", "row")) {
   if (!is.matrix(x))
     stop("Argument x should be a matrix.")
   margin <- match.arg(margin)
-  switch(margin,
-    column = shuffle_matrix.column(x),
-    row = shuffle_matrix.row(x)
-  )
+  switch(margin, column = shuffle_matrix.column(x), row = shuffle_matrix.row(x))
 }
 
 
@@ -159,12 +163,9 @@ shuffle_matrix <- function(x, margin = c("column", "row")) {
 #' @return A matrix.
 #' @noRd
 shuffle_matrix.column <- function(x) {
-  lapply(
-    seq(ncol(x)),
-    function(i) {
-      sample(x[, i])
-    }
-  ) %>%
+  lapply(seq(ncol(x)), function(i) {
+    sample(x[, i])
+  }) %>%
     do.call(rbind, .) %>%
     as.matrix() %>%
     t() -> x_shuffled
@@ -180,12 +181,9 @@ shuffle_matrix.column <- function(x) {
 #' @return A matrix.
 #' @noRd
 shuffle_matrix.row <- function(x) {
-  lapply(
-    seq(nrow(x)),
-    function(i) {
-      sample(x[i, ])
-    }
-  ) %>%
+  lapply(seq(nrow(x)), function(i) {
+    sample(x[i, ])
+  }) %>%
     do.call(rbind, .) %>%
     as.matrix() -> x_shuffled
 }
@@ -226,7 +224,9 @@ find_pc_number.var_frac <- function(eigen_values, threshold = 0.9) {
     ggplot2::geom_hline(yintercept = threshold,
                         colour = "coral",
                         linetype = "dashed") -> p
-  list(pc_num = pc_num, variance_fraction = frac_var, plot = p)
+  list(pc_num = pc_num,
+       variance_fraction = frac_var,
+       plot = p)
 }
 
 
@@ -268,8 +268,7 @@ find_pc_number.capper <- function(x, eigen_values) {
   output$pc_num <- pc_num
   output$variance_fraction <- frac_var[pc_num]
   # Plot
-  data.frame(observed = eigen_values,
-             randomized = res_shuffled$eigs$values) %>%
+  data.frame(observed = eigen_values, randomized = res_shuffled$eigs$values) %>%
     tidyr::gather(key = "type", value = "eigenvalue") %>%
     ggpubr::ggdensity(
       .,
@@ -286,7 +285,7 @@ find_pc_number.capper <- function(x, eigen_values) {
       linetype = "dashed",
       color = "royalblue"
     ) -> output$plot
-   output
+  output
 }
 
 
@@ -315,14 +314,11 @@ find_pc_number.capper <- function(x, eigen_values) {
 #' @export
 find_pc_number.yamat <- function(x, eigen_values, n = 30) {
   .check_args_find_pc_number(x, eigen_values)
-  lapply(
-    seq(n),
-    function(i) {
-      res <- find_pc_number.capper(x, eigen_values)
-      data.frame(pc_num = res$pc_num,
-                 max_eigs = max(res$eigs_shuffled))
-    }
-  ) %>%
+  lapply(seq(n), function(i) {
+    res <- find_pc_number.capper(x, eigen_values)
+    data.frame(pc_num = res$pc_num,
+               max_eigs = max(res$eigs_shuffled))
+  }) %>%
     do.call(rbind, .) -> trials
   pc_num <- sum(eigen_values > mean(trials$max_eigs))
   frac_var <- cumsum(eigen_values) / sum(eigen_values)
@@ -344,4 +340,3 @@ find_pc_number.yamat <- function(x, eigen_values, n = 30) {
   if (!is.numeric(eigen_values))
     stop("Argument eigen_values should be a numeric vector.")
 }
-
