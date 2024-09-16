@@ -6,6 +6,18 @@
 \usage{
 train(idat_dir, targets, output, overwrite = FALSE)
 }
+\arguments{
+\item{idat_dir}{IDAT file directory.}
+
+\item{targets}{\code{data.frame} of targets. See \code{\link[minfi]{read.metharray.exp}}.}
+
+\item{output}{output directory.}
+
+\item{overwrite}{A bool if overwrite the result files.}
+}
+\value{
+A S3 object of \code{YamatClassifierTrainer} class.
+}
 \description{
 Train pipeline
 }
