@@ -12,6 +12,8 @@ create_trainer(
   probes_rda = "probes.Rda",
   preprocessed_dir = "dkfz_preprocessed",
   meth_rda = "meth.Rda",
+  unmeth_rda = "unmeth.Rda",
+  beta_rda = "beta.Rda",
   trainer_rda = "trainer.Rda",
   overwrite = FALSE
 )

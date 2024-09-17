@@ -17,6 +17,8 @@ create_trainer <- function(idat_dir,
                            probes_rda = "probes.Rda",
                            preprocessed_dir = "dkfz_preprocessed",
                            meth_rda = "meth.Rda",
+                           unmeth_rda = "unmeth.Rda",
+                           beta_rda = "beta.Rda",
                            trainer_rda = "trainer.Rda",
                            overwrite = FALSE) {
   if (is.null(targets$Sentrix_ID)) {
@@ -30,6 +32,8 @@ create_trainer <- function(idat_dir,
     probes_rda = probes_rda,
     preprocessed_dir = preprocessed_dir,
     meth_rda = meth_rda,
+    unmeth_rda = unmeth_rda,
+    beta_rda = beta_rda,
     trainer_rda = trainer_rda,
     overwrite = overwrite
   )
@@ -130,3 +134,58 @@ get_meth_from_preprocessed_files <- function(trainer) {
   save(meth, file = meth_rda)
   return(meth)
 }
+
+
+#' Get unmeth.
+#'
+#' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
+#' @return a matrix of unmeth
+#' @export
+get_unmeth <- function(trainer) {
+  unmeth_rda <- file.path(trainer$output, trainer$unmeth_rda)
+  if (file.exists(unmeth_rda)) {
+    logger::log_info("Reading existing unmeth Rda file")
+    load(unmeth_rda)
+  } else {
+    logger::log_info("Getting unmeth Rda from preprocessed files")
+    unmeth <- get_unmeth_from_preprocessed_files(trainer = trainer)
+    save(unmeth, file = unmeth_rda)
+  }
+  return(unmeth)
+}
+
+
+#' Get unmeth from preprocessed files.
+#'
+#' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
+#' @return a matrix of unmeth
+#' @export
+get_unmeth_from_preprocessed_files <- function(trainer) {
+  targets <- get_targets(trainer)
+  sentrix_ids <- unique(targets$Sentrix_ID)
+  preprocessed_dir <- get_preprocessed_dir(trainer)
+  probes <- get_probes(trainer = trainer)
+  unmeth_by_sentrix_id <- lapply(sentrix_ids, function(sentrix_id) {
+    logger::log_info(paste("Processing", sentrix_id))
+    df <- targets[targets$Sentrix_ID == sentrix_id, ]
+    rda_file_name <- paste0(sentrix_id, ".Rda")
+    mset_rda <- file.path(preprocessed_dir, rda_file_name)
+    if (file.exists(mset_rda)) {
+      logger::log_info("Rda file exists")
+      load(mset_rda)
+    } else {
+      stop(paste(mset_rda, "file not exist"))
+    }
+    mset_flt <- mset[probes, ]
+    minfi::getunmeth(mset_flt)
+  })
+  unmeth <- do.call(cbind, unmeth_by_sentrix_id)
+  # dim(unmeth)
+  rm(unmeth_by_sentrix_id)
+  gc()
+  unmeth_rda <- file.path(trainer$output, trainer$unmeth_rda)
+  logger::log_debug(glue::glue("unmeth has {ncol(unmeth)} samples and {nrow(unmeth)} loci"))
+  save(unmeth, file = unmeth_rda)
+  return(unmeth)
+}
+
