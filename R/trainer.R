@@ -205,6 +205,8 @@ get_beta <- function(trainer) {
     load(beta_rda)
   } else {
     logger::log_info("Calculating beta value...")
+    meth <- get_meth(trainer = trainer)
+    unmeth <- get_unmeth(trainer = trainer)
     beta <- meth / (meth + unmeth + trainer$beta_offset)
     save(beta, file = beta_rda)
   }
