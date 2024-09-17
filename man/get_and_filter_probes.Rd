@@ -7,7 +7,7 @@
 get_and_filter_probes(mset)
 }
 \arguments{
-\item{mset}{\code{\link{[minfi]MethySet}} object.}
+\item{mset}{\code{\link[minfi]{MethySet}} object.}
 }
 \value{
 a list of probe IDs.

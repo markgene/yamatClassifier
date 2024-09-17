@@ -10,7 +10,7 @@ preprocess_dkfz(trainer)
 \item{trainer}{A S3 object of \code{YamatClassifierTrainer} class.}
 }
 \value{
-output Rda files of preprocessed data of \code{\link{[minfi]MethySet}}
+output Rda files of preprocessed data of \code{\link[minfi]{MethySet}}
   class. One file per chip.
 }
 \description{

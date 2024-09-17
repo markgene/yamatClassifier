@@ -14,7 +14,7 @@ create_trainer(
   preprocessed_dir = "dkfz_preprocessed",
   meth_rda = "meth.Rda",
   unmeth_rda = "unmeth.Rda",
-  beta_rda = "beta.Rda",
+  beta_value_rda = "beta_value.Rda",
   trainer_rda = "trainer.Rda",
   overwrite = FALSE
 )

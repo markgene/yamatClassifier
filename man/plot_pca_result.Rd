@@ -13,7 +13,7 @@ plot_pca_result(
   pc_y = 2,
   batch_label = "Batch",
   classification_label = "Classification",
-  density_lwd = 0.2
+  density_lwd = 0.6
 )
 }
 \arguments{
@@ -26,37 +26,21 @@ plot_pca_result(
 \item{classification_name}{the column name of classification in the phenotype
 \code{data.frame}.}
 
-\item{threshold}{A numeric scalar between 0 to 1 of the threshold of
-the fraction of variance to choose PC number. Default to 0.9.}
+\item{pc_x}{an integer of PC on x axis. Default to 1.}
+
+\item{pc_y}{an integer of PC on y axis. Default to 2.}
+
+\item{batch_label}{a character describe the ggplot2 label for batch.}
+
+\item{classification_label}{a character describe the ggplot2 label for
+classification.}
 }
 \value{
-A list of four elements:
-  \itemize{
-    \item \code{projected} The result matrix of PCA analysis.
-    \item \code{pca123} A list of result from step 1-3 returned by
-      \code{\link{pca123}}.
-    \item \code{capper} A list of the result of choosing PC number
-      by Capper's method, returned by \code{\link{find_pc_number.capper}}.
-    \item \code{vf} A list of the result of choosing PC number
-      by fraction of variance, returned by \code{\link{find_pc_number.var_frac}}.
-  }
+A \code{\link[gridExtra]{tableGrob}} object.
 }
 \description{
 Plot PCA.
 }
 \details{
-The function wraps up the following five steps of PCA:
-   \enumerate{
-    \item Center and scale.
-    \item Compute the correlation/covariance matrix.
-    \item Calculate the eigenvectors and eigenvalues.
-    \item Choose the PC number. I use Capper's method and fraction of
-      variance to calculate PC numbers and choose the bigger one
-      from the two methods. See details at \code{\link{find_pc_number.capper}}
-      and \code{\link{find_pc_number.var_frac}}.
-    \item Project the scaled input matrix onto the new basis.
-  }
-  I use \code{\link[RSpectra]{eigs}} function in Rspectra package
-  instead of \code{\link[base]{eigen}} function in base to deal
-  with large matrix.
+Inspired by PLSDAbatch package.
 }

@@ -5,33 +5,13 @@
 #' @param batch_name the column name of batch in the phenotype \code{data.frame}.
 #' @param classification_name the column name of classification in the phenotype
 #'   \code{data.frame}.
-
-#' @param threshold A numeric scalar between 0 to 1 of the threshold of
-#'   the fraction of variance to choose PC number. Default to 0.9.
-#' @return A list of four elements:
-#'   \itemize{
-#'     \item \code{projected} The result matrix of PCA analysis.
-#'     \item \code{pca123} A list of result from step 1-3 returned by
-#'       \code{\link{pca123}}.
-#'     \item \code{capper} A list of the result of choosing PC number
-#'       by Capper's method, returned by \code{\link{find_pc_number.capper}}.
-#'     \item \code{vf} A list of the result of choosing PC number
-#'       by fraction of variance, returned by \code{\link{find_pc_number.var_frac}}.
-#'   }
-#' @details The function wraps up the following five steps of PCA:
-#'    \enumerate{
-#'     \item Center and scale.
-#'     \item Compute the correlation/covariance matrix.
-#'     \item Calculate the eigenvectors and eigenvalues.
-#'     \item Choose the PC number. I use Capper's method and fraction of
-#'       variance to calculate PC numbers and choose the bigger one
-#'       from the two methods. See details at \code{\link{find_pc_number.capper}}
-#'       and \code{\link{find_pc_number.var_frac}}.
-#'     \item Project the scaled input matrix onto the new basis.
-#'   }
-#'   I use \code{\link[RSpectra]{eigs}} function in Rspectra package
-#'   instead of \code{\link[base]{eigen}} function in base to deal
-#'   with large matrix.
+#' @param pc_x an integer of PC on x axis. Default to 1.
+#' @param pc_y an integer of PC on y axis. Default to 2.
+#' @param batch_label a character describe the ggplot2 label for batch.
+#' @param classification_label a character describe the ggplot2 label for
+#'   classification.
+#' @return A \code{\link[gridExtra]{tableGrob}} object.
+#' @details Inspired by PLSDAbatch package.
 #' @export
 plot_pca_result <- function(pca_result,
                             pheno,

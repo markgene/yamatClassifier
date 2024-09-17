@@ -103,7 +103,7 @@ get_probes_from_scratch <- function(trainer,
 
 #' Get and filter probes.
 #'
-#' @param mset \code{\link{[minfi]MethySet}} object.
+#' @param mset \code{\link[minfi]{MethySet}} object.
 #' @return a list of probe IDs.
 get_and_filter_probes <- function(mset) {
   gmset <- minfi::mapToGenome(mset)
