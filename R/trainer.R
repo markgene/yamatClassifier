@@ -119,6 +119,7 @@ get_meth_from_preprocessed_files <- function(trainer) {
       stop(paste(mset_rda, "file not exist"))
     }
     mset_flt <- mset[probes, ]
+    minfi::getMeth(mset_flt)
   })
   meth <- do.call(cbind, meth_by_sentrix_id)
   # dim(meth)
