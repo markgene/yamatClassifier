@@ -210,5 +210,5 @@ get_beta <- function(trainer) {
     beta_value <- meth / (meth + unmeth + trainer$beta_offset)
     save(beta_value, file = beta_value_rda)
   }
-  return(beta)
+  return(beta_value)
 }
