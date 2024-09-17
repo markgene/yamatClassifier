@@ -4,6 +4,7 @@
 #' @param targets \code{data.frame} of targets. See \code{\link[minfi]{read.metharray.exp}}.
 #' @param output output directory.
 #' @param probes a character vector of probes.
+#' @param beta_offset offset to calculate beta ratio.
 #' @param probes_rda probes Rda file.
 #' @param preprocessed_dir preprocessed file directory.
 #' @param meth_rda meth Rda file.
@@ -14,6 +15,7 @@ create_trainer <- function(idat_dir,
                            targets,
                            output,
                            probes = NULL,
+                           beta_offset = 100,
                            probes_rda = "probes.Rda",
                            preprocessed_dir = "dkfz_preprocessed",
                            meth_rda = "meth.Rda",
@@ -29,6 +31,7 @@ create_trainer <- function(idat_dir,
     targets = targets,
     output = output,
     probes = probes,
+    beta_offset = beta_offset,
     probes_rda = probes_rda,
     preprocessed_dir = preprocessed_dir,
     meth_rda = meth_rda,
@@ -93,7 +96,7 @@ get_meth <- function(trainer) {
     logger::log_info("Reading existing meth Rda file")
     load(meth_rda)
   } else {
-    logger::log_info("Getting meth Rda from preprocessed files")
+    logger::log_info("Getting meth from preprocessed files")
     meth <- get_meth_from_preprocessed_files(trainer = trainer)
     save(meth, file = meth_rda)
   }
@@ -147,7 +150,7 @@ get_unmeth <- function(trainer) {
     logger::log_info("Reading existing unmeth Rda file")
     load(unmeth_rda)
   } else {
-    logger::log_info("Getting unmeth Rda from preprocessed files")
+    logger::log_info("Getting unmeth from preprocessed files")
     unmeth <- get_unmeth_from_preprocessed_files(trainer = trainer)
     save(unmeth, file = unmeth_rda)
   }
@@ -189,3 +192,21 @@ get_unmeth_from_preprocessed_files <- function(trainer) {
   return(unmeth)
 }
 
+
+#' Get beta value.
+#'
+#' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
+#' @return a matrix of beta value.
+#' @export
+get_beta <- function(trainer) {
+  beta_rda <- file.path(trainer$output, trainer$beta_rda)
+  if (file.exists(beta_rda)) {
+    logger::log_info("Reading existing beta Rda file...")
+    load(beta_rda)
+  } else {
+    logger::log_info("Calculating beta value...")
+    beta <- meth / (meth + unmeth + trainer$beta_offset)
+    save(beta, file = beta_rda)
+  }
+  return(beta)
+}

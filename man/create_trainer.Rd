@@ -9,6 +9,7 @@ create_trainer(
   targets,
   output,
   probes = NULL,
+  beta_offset = 100,
   probes_rda = "probes.Rda",
   preprocessed_dir = "dkfz_preprocessed",
   meth_rda = "meth.Rda",
@@ -26,6 +27,8 @@ create_trainer(
 \item{output}{output directory.}
 
 \item{probes}{a character vector of probes.}
+
+\item{beta_offset}{offset to calculate beta ratio.}
 
 \item{probes_rda}{probes Rda file.}
 
