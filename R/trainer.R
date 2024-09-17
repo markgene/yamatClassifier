@@ -177,7 +177,7 @@ get_unmeth_from_preprocessed_files <- function(trainer) {
       stop(paste(mset_rda, "file not exist"))
     }
     mset_flt <- mset[probes, ]
-    minfi::getunmeth(mset_flt)
+    minfi::getUnmeth(mset_flt)
   })
   unmeth <- do.call(cbind, unmeth_by_sentrix_id)
   # dim(unmeth)
