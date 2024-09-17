@@ -48,7 +48,7 @@ pca <- function(x,
   capper_res <- find_pc_number.capper(x, res$eigs$values)
   logger::log_debug("Finding PC number - fraction of variance")
   vf_res <- find_pc_number.var_frac(res$eigs$values, threshold)
-  pc_num <- max(capper_res$pc_num, vf_res$pc_num)
+  pc_num <- max(capper_res$pc_num, vf_res$pc_num, 2)
   logger::log_debug("Fetching PCs")
   x_projected <- project_pc(pca123_res = res, pc_num = pc_num)
   res <- list(
@@ -126,7 +126,7 @@ project_pc <- function(pca123_res, pc_num) {
     stop("Argument pca123_res is required.")
   if (missing(pc_num))
     stop("Argument pc_num is required.")
-  phi <- pca123_res$eigs$vectors[, seq(pc_num)]
+  phi <- pca123_res$eigs$vectors[, seq(pc_num), drop=FALSE]
   row.names(phi) <- colnames(pca123_res)
   colnames(phi) <- paste0("PC", seq(pc_num))
   pca123_res$scaled %*% phi

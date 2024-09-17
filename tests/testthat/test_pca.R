@@ -1,4 +1,4 @@
-context("PCA")
+context("Test pca()")
 library(yamatClassifier)
 
 x <- as.matrix(mtcars[, c(1, 3:6)])
