@@ -4,6 +4,9 @@
 #' @param targets \code{data.frame} of targets. See \code{\link[minfi]{read.metharray.exp}}.
 #' @param output output directory.
 #' @param probes a character vector of probes.
+#' @param probes_rda probes Rda file.
+#' @param preprocessed_dir preprocessed file directory.
+#' @param meth_rda meth Rda file.
 #' @param overwrite A bool if overwrite the result files.
 #' @return A S3 object of \code{YamatClassifierTrainer} class.
 #' @export
@@ -11,6 +14,10 @@ create_trainer <- function(idat_dir,
                            targets,
                            output,
                            probes = NULL,
+                           probes_rda = "probes.Rda",
+                           preprocessed_dir = "dkfz_preprocessed",
+                           meth_rda = "meth.Rda",
+                           trainer_rda = "trainer.Rda",
                            overwrite = FALSE) {
   if (is.null(targets$Sentrix_ID)) {
     stop("Sentrix_ID is required for targets")
@@ -19,8 +26,12 @@ create_trainer <- function(idat_dir,
     idat_dir = idat_dir,
     targets = targets,
     output = output,
-    overwrite = overwrite,
-    probes = probes
+    probes = probes,
+    probes_rda = probes_rda,
+    preprocessed_dir = preprocessed_dir,
+    meth_rda = meth_rda,
+    trainer_rda = trainer_rda,
+    overwrite = overwrite
   )
   class(trainer) <- "YamatClassifierTrainer"
   return(trainer)
@@ -30,10 +41,9 @@ create_trainer <- function(idat_dir,
 #' Get preprocessed file directory.
 #'
 #' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
-#' @param dir_name output directory name.
 #' @return path of preprocessed file directory.
-get_preprocessed_dir <- function(trainer, dir_name = "dkfz_preprocessed") {
-  preprocessed_dir <- file.path(trainer$output, dir_name)
+get_preprocessed_dir <- function(trainer) {
+  preprocessed_dir <- file.path(trainer$output, trainer$preprocessed_dir)
   if (!dir.exists(preprocessed_dir)) {
     dir.create(preprocessed_dir, recursive = TRUE)
   }
@@ -44,10 +54,18 @@ get_preprocessed_dir <- function(trainer, dir_name = "dkfz_preprocessed") {
 #' Get probe ID file directory.
 #'
 #' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
-#' @param file_name output file name.
 #' @return path of probe ID file.
-get_probes_rda <- function(trainer, file_name = "probes.Rda") {
-  file.path(trainer$output, file_name)
+get_probes_rda <- function(trainer) {
+  file.path(trainer$output, trainer$probes_rda)
+}
+
+
+#' Get YamatClassifierTrainer Rda file.
+#'
+#' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
+#' @return path of YamatClassifierTrainer Rda file.
+get_trainer_rda <- function(trainer) {
+  file.path(trainer$output, trainer$trainer_rda)
 }
 
 
@@ -57,4 +75,57 @@ get_probes_rda <- function(trainer, file_name = "probes.Rda") {
 #' @return \code{data.frame} of targets. See \code{\link[minfi]{read.metharray.exp}}.
 get_targets <- function(trainer) {
   trainer$targets
+}
+
+
+#' Get meth.
+#'
+#' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
+#' @return a matrix of meth
+#' @export
+get_meth <- function(trainer) {
+  meth_rda <- file.path(trainer$output, trainer$meth_rda)
+  if (file.exists(meth_rda)) {
+    logger::log_info("Reading existing meth Rda file")
+    load(meth_rda)
+  } else {
+    logger::log_info("Getting meth Rda from preprocessed files")
+    meth <- get_meth_from_preprocessed_files(trainer = trainer)
+    save(meth, file = meth_rda)
+  }
+  return(meth)
+}
+
+
+#' Get meth from preprocessed files.
+#'
+#' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
+#' @return a matrix of meth
+#' @export
+get_meth_from_preprocessed_files <- function(trainer) {
+  targets <- get_targets(trainer)
+  sentrix_ids <- unique(targets$Sentrix_ID)
+  preprocessed_dir <- get_preprocessed_dir(trainer)
+  probes <- get_probes(trainer = trainer)
+  meth_by_sentrix_id <- lapply(sentrix_ids, function(sentrix_id) {
+    logger::log_info(paste("Processing", sentrix_id))
+    df <- targets[targets$Sentrix_ID == sentrix_id, ]
+    rda_file_name <- paste0(sentrix_id, ".Rda")
+    mset_rda <- file.path(preprocessed_dir, rda_file_name)
+    if (file.exists(mset_rda)) {
+      logger::log_info("Rda file exists")
+      load(mset_rda)
+    } else {
+      stop(paste(mset_rda, "file not exist"))
+    }
+    mset_flt <- mset[probes, ]
+  })
+  meth <- do.call(cbind, meth_by_sentrix_id)
+  # dim(meth)
+  rm(meth_by_sentrix_id)
+  gc()
+  meth_rda <- file.path(trainer$output, trainer$meth_rda)
+  logger::log_debug(glue::glue("meth has {ncol(meth)} samples and {nrow(meth)} loci"))
+  save(meth, file = meth_rda)
+  return(meth)
 }

@@ -5,13 +5,13 @@
 #'   class. One file per chip.
 #' @export
 preprocess_dkfz <- function(trainer) {
-  sentrix_ids <- unique(trainer$targets$Sentrix_ID)
+  targets <- get_targets(trainer)
+  sentrix_ids <- unique(targets$Sentrix_ID)
   preprocessed_dir <- get_preprocessed_dir(trainer)
   i <- 0
   sample_total <- 0
   create_total <- 0
   mset_rda_files <- character(length = length(sentrix_ids))
-  targets <- trainer$targets
   for (sentrix_id in sentrix_ids) {
     i <- i + 1
     df <- targets[targets$Sentrix_ID == sentrix_id, ]

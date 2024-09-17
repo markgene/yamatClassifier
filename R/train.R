@@ -22,5 +22,7 @@ train <- function(idat_dir, targets, output, overwrite = FALSE) {
     chip_type_name = NULL,
     present_by_epic_v2 = TRUE
   )
+  trainer_rda <- get_trainer_rda(trainer = trainer)
+  save(trainer, file = trainer_rda)
   return(trainer)
 }

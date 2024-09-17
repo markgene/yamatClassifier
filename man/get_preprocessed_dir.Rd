@@ -4,12 +4,10 @@
 \alias{get_preprocessed_dir}
 \title{Get preprocessed file directory.}
 \usage{
-get_preprocessed_dir(trainer, dir_name = "dkfz_preprocessed")
+get_preprocessed_dir(trainer)
 }
 \arguments{
 \item{trainer}{A S3 object of \code{YamatClassifierTrainer} class.}
-
-\item{dir_name}{output directory name.}
 }
 \value{
 path of preprocessed file directory.

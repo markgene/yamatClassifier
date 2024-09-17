@@ -4,7 +4,17 @@
 \alias{create_trainer}
 \title{Create a YamatClassifierTrainer object.}
 \usage{
-create_trainer(idat_dir, targets, output, probes = NULL, overwrite = FALSE)
+create_trainer(
+  idat_dir,
+  targets,
+  output,
+  probes = NULL,
+  probes_rda = "probes.Rda",
+  preprocessed_dir = "dkfz_preprocessed",
+  meth_rda = "meth.Rda",
+  trainer_rda = "trainer.Rda",
+  overwrite = FALSE
+)
 }
 \arguments{
 \item{idat_dir}{IDAT file directory.}
@@ -14,6 +24,12 @@ create_trainer(idat_dir, targets, output, probes = NULL, overwrite = FALSE)
 \item{output}{output directory.}
 
 \item{probes}{a character vector of probes.}
+
+\item{probes_rda}{probes Rda file.}
+
+\item{preprocessed_dir}{preprocessed file directory.}
+
+\item{meth_rda}{meth Rda file.}
 
 \item{overwrite}{A bool if overwrite the result files.}
 }
