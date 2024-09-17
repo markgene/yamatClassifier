@@ -16,7 +16,7 @@ test_that("get_beta()", {
                                              targets = targets,
                                              output = "output/5723646052")
   unmeth <- yamatClassifier::get_beta(trainer = trainer)
-  expect_true(file.exists("output/5723646052/beta.Rda"))
+  expect_true(file.exists("output/5723646052/beta_value.Rda"))
   expect_equal(nrow(unmeth), 360456)
   expect_equal(ncol(unmeth), 3)
 })

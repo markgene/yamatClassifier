@@ -20,7 +20,7 @@ create_trainer <- function(idat_dir,
                            preprocessed_dir = "dkfz_preprocessed",
                            meth_rda = "meth.Rda",
                            unmeth_rda = "unmeth.Rda",
-                           beta_rda = "beta.Rda",
+                           beta_value_rda = "beta_value.Rda",
                            trainer_rda = "trainer.Rda",
                            overwrite = FALSE) {
   if (is.null(targets$Sentrix_ID)) {
@@ -36,7 +36,7 @@ create_trainer <- function(idat_dir,
     preprocessed_dir = preprocessed_dir,
     meth_rda = meth_rda,
     unmeth_rda = unmeth_rda,
-    beta_rda = beta_rda,
+    beta_value_rda = beta_value_rda,
     trainer_rda = trainer_rda,
     overwrite = overwrite
   )
@@ -199,16 +199,16 @@ get_unmeth_from_preprocessed_files <- function(trainer) {
 #' @return a matrix of beta value.
 #' @export
 get_beta <- function(trainer) {
-  beta_rda <- file.path(trainer$output, trainer$beta_rda)
-  if (file.exists(beta_rda)) {
+  beta_value_rda <- file.path(trainer$output, trainer$beta_value_rda)
+  if (file.exists(beta_value_rda)) {
     logger::log_info("Reading existing beta Rda file...")
-    load(beta_rda)
+    load(beta_value_rda)
   } else {
     logger::log_info("Calculating beta value...")
     meth <- get_meth(trainer = trainer)
     unmeth <- get_unmeth(trainer = trainer)
-    beta <- meth / (meth + unmeth + trainer$beta_offset)
-    save(beta, file = beta_rda)
+    beta_value <- meth / (meth + unmeth + trainer$beta_offset)
+    save(beta_value, file = beta_value_rda)
   }
   return(beta)
 }
