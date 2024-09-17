@@ -3,10 +3,15 @@
 #' @param idat_dir IDAT file directory.
 #' @param targets \code{data.frame} of targets. See \code{\link[minfi]{read.metharray.exp}}.
 #' @param output output directory.
+#' @param probes a character vector of probes.
 #' @param overwrite A bool if overwrite the result files.
 #' @return A S3 object of \code{YamatClassifierTrainer} class.
 #' @export
-create_trainer <- function(idat_dir, targets, output, overwrite = FALSE) {
+create_trainer <- function(idat_dir,
+                           targets,
+                           output,
+                           probes = NULL,
+                           overwrite = FALSE) {
   if (is.null(targets$Sentrix_ID)) {
     stop("Sentrix_ID is required for targets")
   }
@@ -14,7 +19,8 @@ create_trainer <- function(idat_dir, targets, output, overwrite = FALSE) {
     idat_dir = idat_dir,
     targets = targets,
     output = output,
-    overwrite = overwrite
+    overwrite = overwrite,
+    probes = probes
   )
   class(trainer) <- "YamatClassifierTrainer"
   return(trainer)
@@ -40,7 +46,7 @@ get_preprocessed_dir <- function(trainer, dir_name = "dkfz_preprocessed") {
 #' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
 #' @param file_name output file name.
 #' @return path of probe ID file.
-get_probe_ids_rda <- function(trainer, file_name = "probe_ids.Rda") {
+get_probes_rda <- function(trainer, file_name = "probes.Rda") {
   file.path(trainer$output, file_name)
 }
 

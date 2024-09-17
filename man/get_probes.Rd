@@ -2,9 +2,9 @@
 % Please edit documentation in R/probe.R
 \name{get_probes}
 \alias{get_probes}
-\title{Get probes of interest}
+\title{Update probes of interest.}
 \usage{
-get_probes(trainer, chip_type_name, present_by_epic_v2 = TRUE)
+get_probes(trainer, chip_type_name = NULL, present_by_epic_v2 = TRUE)
 }
 \arguments{
 \item{trainer}{A S3 object of \code{YamatClassifierTrainer} class.}
@@ -17,10 +17,16 @@ get_probes(trainer, chip_type_name, present_by_epic_v2 = TRUE)
 a list of probe CG IDs.
 }
 \description{
-The probe set has:
+If probe set is not set for \code{YamatClassifierTrainer}, check if a Rda
+file exists for probe set. If exists, load Rda file. Otherwise, get probe IDs
+from scratch. The probe set has:
   \itemize{
     \item Drop SNP.
     \item Drop loci on chr X or Y..
     \item Common between the array types of trainer and EPIC v2
   }
+}
+\details{
+If probe set is set, returns it and meanwhile save it in Rda file if the
+file does not exist.
 }

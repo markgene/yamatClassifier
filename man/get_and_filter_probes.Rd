@@ -2,10 +2,16 @@
 % Please edit documentation in R/probe.R
 \name{get_and_filter_probes}
 \alias{get_and_filter_probes}
-\title{Default}
+\title{Get and filter probes.}
 \usage{
 get_and_filter_probes(mset)
 }
+\arguments{
+\item{mset}{\code{\link{[minfi]MethySet}} object.}
+}
+\value{
+a list of probe IDs.
+}
 \description{
-Default
+Get and filter probes.
 }

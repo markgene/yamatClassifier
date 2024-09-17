@@ -4,7 +4,7 @@
 \alias{create_trainer}
 \title{Create a YamatClassifierTrainer object.}
 \usage{
-create_trainer(idat_dir, targets, output, overwrite = FALSE)
+create_trainer(idat_dir, targets, output, probes = NULL, overwrite = FALSE)
 }
 \arguments{
 \item{idat_dir}{IDAT file directory.}
@@ -12,6 +12,8 @@ create_trainer(idat_dir, targets, output, overwrite = FALSE)
 \item{targets}{\code{data.frame} of targets. See \code{\link[minfi]{read.metharray.exp}}.}
 
 \item{output}{output directory.}
+
+\item{probes}{a character vector of probes.}
 
 \item{overwrite}{A bool if overwrite the result files.}
 }

@@ -4,7 +4,11 @@
 \alias{get_probes_from_scratch}
 \title{Get probes of interest}
 \usage{
-get_probes_from_scratch(trainer, chip_type_name, present_by_epic_v2 = TRUE)
+get_probes_from_scratch(
+  trainer,
+  chip_type_name = NULL,
+  present_by_epic_v2 = TRUE
+)
 }
 \arguments{
 \item{trainer}{A S3 object of \code{YamatClassifierTrainer} class.}
