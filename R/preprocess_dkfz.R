@@ -1,8 +1,8 @@
 #' Preprocess DKFZ approach.
 #'
 #' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
-#' @return output Rda files of preprocessed data of MethySet class. One file per
-#'   chip.
+#' @return output Rda files of preprocessed data of \code{\link[minfi]MethySet}}
+#'   class. One file per chip.
 #' @export
 preprocess_dkfz <- function(trainer) {
   sentrix_ids <- unique(trainer$targets$Sentrix_ID)

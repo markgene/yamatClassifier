@@ -10,8 +10,6 @@ get_preprocessed_dir(trainer, dir_name = "dkfz_preprocessed")
 \item{trainer}{A S3 object of \code{YamatClassifierTrainer} class.}
 
 \item{dir_name}{output directory name.}
-
-\item{overwrite}{A bool if overwrite the result files.}
 }
 \value{
 path of preprocessed file directory.

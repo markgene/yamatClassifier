@@ -25,7 +25,6 @@ create_trainer <- function(idat_dir, targets, output, overwrite = FALSE) {
 #'
 #' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
 #' @param dir_name output directory name.
-#' @param overwrite A bool if overwrite the result files.
 #' @return path of preprocessed file directory.
 get_preprocessed_dir <- function(trainer, dir_name = "dkfz_preprocessed") {
   preprocessed_dir <- file.path(trainer$output, dir_name)
@@ -33,4 +32,23 @@ get_preprocessed_dir <- function(trainer, dir_name = "dkfz_preprocessed") {
     dir.create(preprocessed_dir, recursive = TRUE)
   }
   return(preprocessed_dir)
+}
+
+
+#' Get probe ID file directory.
+#'
+#' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
+#' @param file_name output file name.
+#' @return path of probe ID file.
+get_probe_ids_rda <- function(trainer, file_name = "probe_ids.Rda") {
+  file.path(trainer$output, file_name)
+}
+
+
+#' Get targets.
+#'
+#' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
+#' @return \code{data.frame} of targets. See \code{\link[minfi]{read.metharray.exp}}.
+get_targets <- function(trainer) {
+  trainer$targets
 }
