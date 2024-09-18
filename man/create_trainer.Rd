@@ -12,6 +12,7 @@ create_trainer(
   beta_offset = 100,
   probes_rda = "probes.Rda",
   preprocessed_dir = "dkfz_preprocessed",
+  batch_effect_explore_dir = "batch_effect_explore",
   meth_rda = "meth.Rda",
   unmeth_rda = "unmeth.Rda",
   beta_value_rda = "beta_value.Rda",
@@ -33,6 +34,8 @@ create_trainer(
 \item{probes_rda}{probes Rda file.}
 
 \item{preprocessed_dir}{preprocessed file directory.}
+
+\item{batch_effect_explore_dir}{batch effect exploratory analysis directory.}
 
 \item{meth_rda}{meth Rda file.}
 

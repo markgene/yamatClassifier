@@ -7,6 +7,7 @@
 #' @param beta_offset offset to calculate beta ratio.
 #' @param probes_rda probes Rda file.
 #' @param preprocessed_dir preprocessed file directory.
+#' @param batch_effect_explore_dir batch effect exploratory analysis directory.
 #' @param meth_rda meth Rda file.
 #' @param overwrite A bool if overwrite the result files.
 #' @return A S3 object of \code{YamatClassifierTrainer} class.
@@ -18,6 +19,7 @@ create_trainer <- function(idat_dir,
                            beta_offset = 100,
                            probes_rda = "probes.Rda",
                            preprocessed_dir = "dkfz_preprocessed",
+                           batch_effect_explore_dir = "batch_effect_explore",
                            meth_rda = "meth.Rda",
                            unmeth_rda = "unmeth.Rda",
                            beta_value_rda = "beta_value.Rda",
@@ -34,6 +36,7 @@ create_trainer <- function(idat_dir,
     beta_offset = beta_offset,
     probes_rda = probes_rda,
     preprocessed_dir = preprocessed_dir,
+    batch_effect_explore_dir = batch_effect_explore_dir,
     meth_rda = meth_rda,
     unmeth_rda = unmeth_rda,
     beta_value_rda = beta_value_rda,
@@ -55,6 +58,19 @@ get_preprocessed_dir <- function(trainer) {
     dir.create(preprocessed_dir, recursive = TRUE)
   }
   return(preprocessed_dir)
+}
+
+
+#' Get the directory of batch effect exploratory analysis.
+#'
+#' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
+#' @return path of the directory of batch effect exploratory analysis.
+get_batch_effect_explore_dir <- function(trainer) {
+  batch_effect_explore_dir <- file.path(trainer$output, trainer$batch_effect_explore_dir)
+  if (!dir.exists(batch_effect_explore_dir)) {
+    dir.create(batch_effect_explore_dir, recursive = TRUE)
+  }
+  return(batch_effect_explore_dir)
 }
 
 
