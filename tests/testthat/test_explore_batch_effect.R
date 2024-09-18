@@ -13,7 +13,7 @@ test_that("explore_batch_effect() runs without error", {
       "5723646052_R05C02"
     ),
     Sentrix_ID = "5723646052",
-    Batch = c("B1", "B2", "B2"),
+    Batch = c("B1", "B1", "B1"),
     Diagnosis = "D1"
   )
   trainer <- yamatClassifier::create_trainer(idat_dir = idat_dir,

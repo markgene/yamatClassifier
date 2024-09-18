@@ -70,7 +70,7 @@ plot_pca_result <- function(pca_result,
     y_limits = y_limits
   )
 
-  legend <- ggpubr::get_legend(main_plot)
+  legend <- patchwork::wrap_ggplot_grob(ggpubr::get_legend(main_plot))
   main_plot_without_legend <- main_plot + ggplot2::theme(legend.position = 'none')
   p <- x_density_plot + legend + main_plot_without_legend + y_density_plot +
     patchwork::plot_layout(
