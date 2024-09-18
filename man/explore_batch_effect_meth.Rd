@@ -7,11 +7,13 @@
 explore_batch_effect_meth(
   trainer,
   batch_name = "Batch",
+  classification_name = "Classification",
   top_n_rle = 20000,
   top_n_pca = 20000,
   rle_downsample = 100,
   k = 50,
-  threshold = 0.9
+  threshold = 0.9,
+  meth_pca_pdf = "meth_pca.pdf"
 )
 }
 \arguments{
@@ -19,6 +21,9 @@ explore_batch_effect_meth(
 
 \item{batch_name}{column name of batch in the \code{targets} attribute of
 \code{YamatClassifierTrainer} object.}
+
+\item{classification_name}{column name of classification in the \code{targets}
+attribute of \code{YamatClassifierTrainer} object.}
 
 \item{top_n_rle}{an integer of the most variable N loci for relative log
 expression (RLE) analysis.}
@@ -32,6 +37,8 @@ while keep the proportion of each group.}
 
 \item{threshold}{A numeric scalar between 0 to 1 of the threshold of
 the fraction of variance to choose PC number. Default to 0.9.}
+
+\item{meth_pca_pdf}{PDF file for meth PCA result.}
 }
 \description{
 Explore batch effect meth

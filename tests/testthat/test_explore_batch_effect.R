@@ -13,7 +13,8 @@ test_that("explore_batch_effect() runs without error", {
       "5723646052_R05C02"
     ),
     Sentrix_ID = "5723646052",
-    Batch = c("B1", "B2", "B2")
+    Batch = c("B1", "B2", "B2"),
+    Diagnosis = "D1"
   )
   trainer <- yamatClassifier::create_trainer(idat_dir = idat_dir,
                                              targets = targets,
@@ -21,6 +22,7 @@ test_that("explore_batch_effect() runs without error", {
   meth_pca <- yamatClassifier::explore_batch_effect(
     trainer = trainer,
     batch_name = "Batch",
+    classification_name = "Diagnosis",
     top_n_rle = 200,
     rle_downsample = 3,
     top_n_pca = 500,
@@ -34,5 +36,8 @@ test_that("explore_batch_effect() runs without error", {
   ))
   expect_true(file.exists(
     "output/5723646052/batch_effect_explore/Batch_meth_pca.Rda"
+  ))
+  expect_true(file.exists(
+    "output/5723646052/batch_effect_explore/Batch_meth_pca.pdf"
   ))
 })

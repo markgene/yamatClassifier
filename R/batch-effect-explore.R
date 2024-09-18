@@ -7,6 +7,8 @@
 #' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
 #' @param batch_name column name of batch in the \code{targets} attribute of
 #'   \code{YamatClassifierTrainer} object.
+#' @param classification_name column name of classification in the \code{targets}
+#'   attribute of \code{YamatClassifierTrainer} object.
 #' @param top_n_rle an integer of the most variable N loci for relative log
 #'   expression (RLE) analysis.
 #' @param top_n_pca an integer of the most variable N loci for PCA.
@@ -15,6 +17,8 @@
 #' @param k Number of eigenvalues requested.
 #' @param threshold A numeric scalar between 0 to 1 of the threshold of
 #'   the fraction of variance to choose PC number. Default to 0.9.
+#' @param classification_name column name of classification in the \code{targets}
+#'   attribute of \code{YamatClassifierTrainer} object.
 #' @return NULL
 #' @details
 #'    \enumerate{
@@ -30,6 +34,7 @@
 #' @export
 explore_batch_effect <- function(trainer,
                                  batch_name = "Batch",
+                                 classification_name = "Classification",
                                  top_n_rle = 20000,
                                  rle_downsample = 100,
                                  top_n_pca = 20000,
@@ -46,7 +51,8 @@ explore_batch_effect <- function(trainer,
     rle_downsample = rle_downsample,
     top_n_pca = top_n_pca,
     k = k,
-    threshold = threshold
+    threshold = threshold,
+    classification_name = classification_name
   )
 }
 
@@ -55,6 +61,8 @@ explore_batch_effect <- function(trainer,
 #' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
 #' @param batch_name column name of batch in the \code{targets} attribute of
 #'   \code{YamatClassifierTrainer} object.
+#' @param classification_name column name of classification in the \code{targets}
+#'   attribute of \code{YamatClassifierTrainer} object.
 #' @param top_n_rle an integer of the most variable N loci for relative log
 #'   expression (RLE) analysis.
 #' @param top_n_pca an integer of the most variable N loci for PCA.
@@ -63,18 +71,21 @@ explore_batch_effect <- function(trainer,
 #' @param k Number of eigenvalues requested.
 #' @param threshold A numeric scalar between 0 to 1 of the threshold of
 #'   the fraction of variance to choose PC number. Default to 0.9.
+#' @param meth_pca_pdf PDF file for meth PCA result.
 #' @return NULL
 explore_batch_effect_meth <- function(trainer,
                                       batch_name = "Batch",
+                                      classification_name = "Classification",
                                       top_n_rle = 20000,
                                       top_n_pca = 20000,
                                       rle_downsample = 100,
                                       k = 50,
-                                      threshold = 0.9) {
+                                      threshold = 0.9,
+                                      meth_pca_pdf = "meth_pca.pdf") {
   batch_effect_explore_dir <- get_batch_effect_explore_dir(trainer = trainer)
   batch_prefix <- make.names(batch_name)
   # RLE
-  logger::log_debug("Meth RLE")
+  logger::log_debug("meth RLE")
   meth_rle_plot <- explore_batch_effect_meth_rle(
     trainer,
     batch_name = batch_name,
@@ -89,12 +100,29 @@ explore_batch_effect_meth <- function(trainer,
     width = 15
   )
   # PCA
+  logger::log_debug("meth PCA")
+  logger::log_debug("Computing PCA")
   pca_result <- explore_batch_effect_meth_pca_compute(
     trainer = trainer,
     batch_name = batch_name,
     top_n = top_n_pca,
     k = k,
     threshold = threshold
+  )
+  targets <- get_targets(trainer = trainer)
+  p <- yamatClassifier::plot_pca_result(pca_result,
+                                        targets,
+                                        batch_name = batch_name,
+                                        classification_name = classification_name)
+  batch_effect_explore_dir <- get_batch_effect_explore_dir(trainer = trainer)
+  batch_prefix <- make.names(batch_name)
+  meth_pca_pdf <- glue::glue("{batch_prefix}_{meth_pca_pdf}")
+  meth_pca_pdf <- file.path(batch_effect_explore_dir, meth_pca_pdf)
+  ggplot2::ggsave(
+    filename = meth_pca_pdf,
+    plot = p,
+    height = 8,
+    width = 8
   )
 }
 

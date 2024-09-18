@@ -7,6 +7,7 @@
 explore_batch_effect(
   trainer,
   batch_name = "Batch",
+  classification_name = "Classification",
   top_n_rle = 20000,
   rle_downsample = 100,
   top_n_pca = 20000,
@@ -19,6 +20,9 @@ explore_batch_effect(
 
 \item{batch_name}{column name of batch in the \code{targets} attribute of
 \code{YamatClassifierTrainer} object.}
+
+\item{classification_name}{column name of classification in the \code{targets}
+attribute of \code{YamatClassifierTrainer} object.}
 
 \item{top_n_rle}{an integer of the most variable N loci for relative log
 expression (RLE) analysis.}
