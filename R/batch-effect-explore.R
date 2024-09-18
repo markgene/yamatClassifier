@@ -55,6 +55,7 @@ explore_batch_effect <- function(trainer,
     threshold = threshold,
     classification_name = classification_name
   )
+  gc()
   logger::log_info(glue::glue("Exploring batch effect of {batch_name} of unmeth..."))
   explore_batch_effect_unmeth(
     trainer,
@@ -66,6 +67,7 @@ explore_batch_effect <- function(trainer,
     threshold = threshold,
     classification_name = classification_name
   )
+  gc()
   logger::log_info(glue::glue("Exploring batch effect of {batch_name} of beta..."))
   explore_batch_effect_beta_value(
     trainer,
@@ -77,5 +79,6 @@ explore_batch_effect <- function(trainer,
     threshold = threshold,
     classification_name = classification_name
   )
+  gc()
 }
 
