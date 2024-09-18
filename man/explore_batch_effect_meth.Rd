@@ -8,7 +8,10 @@ explore_batch_effect_meth(
   trainer,
   batch_name = "Batch",
   top_n_rle = 20000,
-  rle_downsample = 100
+  top_n_pca = 20000,
+  rle_downsample = 100,
+  k = 50,
+  threshold = 0.9
 )
 }
 \arguments{
@@ -20,8 +23,15 @@ explore_batch_effect_meth(
 \item{top_n_rle}{an integer of the most variable N loci for relative log
 expression (RLE) analysis.}
 
+\item{top_n_pca}{an integer of the most variable N loci for PCA.}
+
 \item{rle_downsample}{if there are many samples, down-sample it to a number
 while keep the proportion of each group.}
+
+\item{k}{Number of eigenvalues requested.}
+
+\item{threshold}{A numeric scalar between 0 to 1 of the threshold of
+the fraction of variance to choose PC number. Default to 0.9.}
 }
 \description{
 Explore batch effect meth

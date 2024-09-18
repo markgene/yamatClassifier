@@ -71,8 +71,7 @@ plot_relative_log_expression <- function(x,
       values_to = "Value"
     ) %>%
     dplyr::mutate(Basename = factor(Basename, levels = sampled$Basename))
-  ggplot2::ggplot(data = x, ggplot2::aes(x = Basename, y = Value, fill =
-                                           Batch)) +
+  ggplot2::ggplot(data = x, ggplot2::aes(x = Basename, y = Value, fill = Batch)) +
     ggplot2::geom_boxplot(outlier.shape = NA) +
     ggplot2::labs(fill = batch_label) +
     viridis::scale_fill_viridis(discrete = TRUE, alpha = 0.6) +

@@ -1,6 +1,8 @@
 context("Test explore_batch_effect()")
+library(logger)
 library(yamatClassifier)
 
+logger::log_threshold(DEBUG)
 
 test_that("explore_batch_effect() runs without error", {
   idat_dir <- file.path(system.file("extdata", package = "minfiData"), "5723646052")
@@ -16,13 +18,21 @@ test_that("explore_batch_effect() runs without error", {
   trainer <- yamatClassifier::create_trainer(idat_dir = idat_dir,
                                              targets = targets,
                                              output = "output/5723646052")
-  yamatClassifier::explore_batch_effect(
+  meth_pca <- yamatClassifier::explore_batch_effect(
     trainer = trainer,
     batch_name = "Batch",
-    top_n = 500,
-    rle_downsample = 3
+    top_n_rle = 200,
+    rle_downsample = 3,
+    top_n_pca = 500,
+    k = 2,
+    threshold = 0.7
   )
+  expect_true(nrow(meth_pca$pca123$eigs$vectors) == 500)
+  expect_true(ncol(meth_pca$pca123$eigs$vectors) == 2)
   expect_true(file.exists(
     "output/5723646052/batch_effect_explore/Batch_meth_rle.pdf"
+  ))
+  expect_true(file.exists(
+    "output/5723646052/batch_effect_explore/Batch_meth_pca.Rda"
   ))
 })
