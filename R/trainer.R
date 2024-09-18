@@ -213,7 +213,13 @@ get_beta <- function(trainer) {
     meth <- get_meth(trainer = trainer)
     unmeth <- get_unmeth(trainer = trainer)
     beta_value <- meth / (meth + unmeth + trainer$beta_offset)
+
     save(beta_value, file = beta_value_rda)
   }
+  logger::log_debug(
+    glue::glue(
+      "beta_value has {ncol(beta_value)} samples and {nrow(beta_value)} loci"
+    )
+  )
   return(beta_value)
 }
