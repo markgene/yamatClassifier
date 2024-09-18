@@ -71,6 +71,7 @@ get_probes_rda <- function(trainer) {
 #'
 #' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
 #' @return path of YamatClassifierTrainer Rda file.
+#' @export
 get_trainer_rda <- function(trainer) {
   file.path(trainer$output, trainer$trainer_rda)
 }
