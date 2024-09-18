@@ -123,11 +123,13 @@ get_meth_from_preprocessed_files <- function(trainer) {
     if (file.exists(mset_rda)) {
       logger::log_info("Rda file exists")
       load(mset_rda)
+      logger::log_debug("mset has {ncol(mset)} samples and {nrow(mset)} loci")
+      mset_flt <- mset[probes, ]
+      return(minfi::getMeth(mset_flt))
     } else {
       stop(paste(mset_rda, "file not exist"))
+      return(NULL)
     }
-    mset_flt <- mset[probes, ]
-    minfi::getMeth(mset_flt)
   })
   meth <- do.call(cbind, meth_by_sentrix_id)
   # dim(meth)
@@ -177,11 +179,13 @@ get_unmeth_from_preprocessed_files <- function(trainer) {
     if (file.exists(mset_rda)) {
       logger::log_info("Rda file exists")
       load(mset_rda)
+      logger::log_debug("mset has {ncol(mset)} samples and {nrow(mset)} loci")
+      mset_flt <- mset[probes, ]
+      return(minfi::getUnmeth(mset_flt))
     } else {
       stop(paste(mset_rda, "file not exist"))
+      return(NULL)
     }
-    mset_flt <- mset[probes, ]
-    minfi::getUnmeth(mset_flt)
   })
   unmeth <- do.call(cbind, unmeth_by_sentrix_id)
   # dim(unmeth)
