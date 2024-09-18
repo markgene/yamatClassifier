@@ -11,7 +11,7 @@
 #'   to "Batch".
 #' @param classification_label a character describe the ggplot2 label for
 #'   classification. Default to "Classification".
-#' @return A \code{\link[gridExtra]{tableGrob}} object.
+#' @return A \code{\link[ggplot2]{ggplot}} object.
 #' @details Inspired by \code{PLSDAbatch} package.
 #' @export
 plot_pca_result <- function(pca_result,
@@ -22,7 +22,9 @@ plot_pca_result <- function(pca_result,
                             pc_y = 2,
                             batch_label = "Batch",
                             classification_label = "Classification",
-                            density_lwd = 0.6) {
+                            density_lwd = 0.6,
+                            plot_title = "PCA",
+                            plot_subtitle = "PCA subtitle") {
   projection <- pca_result$projected
   eigen_values <- pca_result$pca123$eigs$values
   frac_var <- eigen_values / sum(eigen_values)
@@ -69,17 +71,27 @@ plot_pca_result <- function(pca_result,
   )
 
   legend <- ggpubr::get_legend(main_plot)
-  table_grob <- gridExtra::arrangeGrob(
-    x_density_plot,
-    legend,
-    main_plot + ggplot2::theme(legend.position = 'none'),
-    y_density_plot,
-    ncol = 2,
-    nrow = 2,
-    widths = c(3, 1),
-    heights = c(1, 3)
-  )
-  return(table_grob)
+  main_plot_without_legend <- main_plot + ggplot2::theme(legend.position = 'none')
+  p <- x_density_plot + legend + main_plot_without_legend + y_density_plot +
+    patchwork::plot_layout(
+      ncol = 2,
+      nrow = 2,
+      widths = c(3, 1),
+      heights = c(1, 3)
+    ) +
+    patchwork::plot_annotation(title = plot_title, subtitle = plot_subtitle)
+  return(p)
+  # table_grob <- gridExtra::arrangeGrob(
+  #   x_density_plot,
+  #   legend,
+  #   main_plot + ggplot2::theme(legend.position = 'none'),
+  #   y_density_plot,
+  #   ncol = 2,
+  #   nrow = 2,
+  #   widths = c(3, 1),
+  #   heights = c(1, 3)
+  # )
+  # return(table_grob)
 }
 
 

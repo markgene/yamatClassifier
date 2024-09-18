@@ -13,7 +13,9 @@ plot_pca_result(
   pc_y = 2,
   batch_label = "Batch",
   classification_label = "Classification",
-  density_lwd = 0.6
+  density_lwd = 0.6,
+  plot_title = "PCA",
+  plot_subtitle = "PCA subtitle"
 )
 }
 \arguments{
@@ -37,7 +39,7 @@ to "Batch".}
 classification. Default to "Classification".}
 }
 \value{
-A \code{\link[gridExtra]{tableGrob}} object.
+A \code{\link[ggplot2]{ggplot}} object.
 }
 \description{
 Plot PCA.
