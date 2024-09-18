@@ -7,11 +7,12 @@
 #'   \code{data.frame}.
 #' @param pc_x an integer of PC on x axis. Default to 1.
 #' @param pc_y an integer of PC on y axis. Default to 2.
-#' @param batch_label a character describe the ggplot2 label for batch.
+#' @param batch_label a character describe the ggplot2 label for batch. Default
+#'   to "Batch".
 #' @param classification_label a character describe the ggplot2 label for
-#'   classification.
+#'   classification. Default to "Classification".
 #' @return A \code{\link[gridExtra]{tableGrob}} object.
-#' @details Inspired by PLSDAbatch package.
+#' @details Inspired by \code{PLSDAbatch} package.
 #' @export
 plot_pca_result <- function(pca_result,
                             pheno,
@@ -83,6 +84,17 @@ plot_pca_result <- function(pca_result,
 
 
 #' Prepare PCA plot data
+#'
+#' @param projection A matrix pf PCA projections stored in \code{projected}
+#'   attribute of \code{pca_result} object.
+#' @param pheno the \code{data.frame} of phenotype.
+#' @param batch_name the column name of batch in the phenotype \code{data.frame}.
+#' @param classification_name the column name of classification in the phenotype
+#'   \code{data.frame}.
+#' @param pc_x_name column name for PC on X axis. Default to "PC1".
+#' @param pc_xyname column name for PC on Y axis. Default to "PC2".
+#' @return A \code{data.frame} has four columns at least: \code{pc_x}, \code{pc_y},
+#'   \code{batch}, \code{classification}.
 prepare_plot_data <- function(projection,
                               pheno,
                               batch_name,
@@ -99,6 +111,17 @@ prepare_plot_data <- function(projection,
 
 
 #' Main PCA plot
+#'
+#' @param data A \code{data.frame} for PCA plot. It can be created
+#' @param pal point color palette.
+#' @param batch_label a character describe the ggplot2 label for batch. Default
+#'   to "Batch".
+#' @param classification_label a character describe the ggplot2 label for
+#'   classification. Default to "Classification".
+#' @param x_label a character of X axis label. Default to "PC1".
+#' @param y_label a character of Y axis label. Default to "PC2".
+#' @param legend_cex a float for legend text size. Default to 0.7.
+#' @return A \code{\line[ggplot2]{ggplot}} object.
 get_main_pca_plot <- function(data,
                               pal,
                               batch_label = "Batch",
@@ -141,6 +164,13 @@ get_main_pca_plot <- function(data,
 
 
 #' PC x density plot
+#'
+#' @param data A \code{data.frame} for PCA plot. It can be created
+#' @param pal point color palette.
+#' @param density_lwd density line width. Default to 0.2.
+#' @param x_limits X axis limits.
+#' @param title_cex a float for title text size. Default to 0.7.
+#' @return A \code{\line[ggplot2]{ggplot}} object.
 get_x_density_plot <- function(data,
                                density_lwd = 0.2,
                                pal,
@@ -166,6 +196,13 @@ get_x_density_plot <- function(data,
 
 
 #' PC y density plot
+#'
+#' @param data A \code{data.frame} for PCA plot. It can be created
+#' @param pal point color palette.
+#' @param density_lwd density line width. Default to 0.2.
+#' @param x_limits X axis limits.
+#' @param title_cex a float for title text size. Default to 0.7.
+#' @return A \code{\line[ggplot2]{ggplot}} object.
 get_y_density_plot <- function(data,
                                density_lwd = 0.2,
                                pal,

@@ -13,6 +13,25 @@ prepare_plot_data(
   pc_y_name = "PC2"
 )
 }
+\arguments{
+\item{projection}{A matrix pf PCA projections stored in \code{projected}
+attribute of \code{pca_result} object.}
+
+\item{pheno}{the \code{data.frame} of phenotype.}
+
+\item{batch_name}{the column name of batch in the phenotype \code{data.frame}.}
+
+\item{classification_name}{the column name of classification in the phenotype
+\code{data.frame}.}
+
+\item{pc_x_name}{column name for PC on X axis. Default to "PC1".}
+
+\item{pc_xyname}{column name for PC on Y axis. Default to "PC2".}
+}
+\value{
+A \code{data.frame} has four columns at least: \code{pc_x}, \code{pc_y},
+  \code{batch}, \code{classification}.
+}
 \description{
 Prepare PCA plot data
 }

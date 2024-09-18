@@ -1,7 +1,8 @@
 context("Test plot_pca_result()")
+library(ggplot2)
 library(yamatClassifier)
 
-get_test_meth <- function() {
+get_test_trainer <- function() {
   idat_dir <- file.path(system.file("extdata", package = "minfiData"), "5723646052")
   targets <- data.frame(
     Basename = c(
@@ -14,13 +15,13 @@ get_test_meth <- function() {
   trainer <- yamatClassifier::create_trainer(idat_dir = idat_dir,
                                              targets = targets,
                                              output = "output/5723646052")
-  meth <- yamatClassifier::get_meth(trainer = trainer)
-  meth
+  trainer
 }
 
 
 test_that("plot_pca_result()", {
-  meth <- get_test_meth()
+  trainer <- get_test_trainer()
+  meth <- yamatClassifier::get_meth(trainer = trainer)
   meth_log2 <- log2(meth + 1)
   meth_log2 <- meth_log2[1:250, ]
   element_count <- length(meth_log2)
@@ -50,8 +51,11 @@ test_that("plot_pca_result()", {
     Batch = c(rep("B1", 4), rep("B2", 5)),
     Classification = c("C1", "C1", "C2", "C2", "C1", "C1", "C2", "C2", "C2")
   )
-  yamatClassifier::plot_pca_result(pca_result,
+  p <- yamatClassifier::plot_pca_result(pca_result,
                                    targets,
                                    batch_name = "Batch",
                                    classification_name = "Classification")
+  pca_plot_file <- file.path(trainer$output, "pca_meth.pdf")
+  ggplot2::ggsave(filename = pca_plot_file, plot = p, height = 8, width = 8)
+  expect_true(file.exists("output/5723646052/pca_meth.pdf"))
 })

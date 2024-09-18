@@ -30,10 +30,11 @@ plot_pca_result(
 
 \item{pc_y}{an integer of PC on y axis. Default to 2.}
 
-\item{batch_label}{a character describe the ggplot2 label for batch.}
+\item{batch_label}{a character describe the ggplot2 label for batch. Default
+to "Batch".}
 
 \item{classification_label}{a character describe the ggplot2 label for
-classification.}
+classification. Default to "Classification".}
 }
 \value{
 A \code{\link[gridExtra]{tableGrob}} object.
@@ -42,5 +43,5 @@ A \code{\link[gridExtra]{tableGrob}} object.
 Plot PCA.
 }
 \details{
-Inspired by PLSDAbatch package.
+Inspired by \code{PLSDAbatch} package.
 }

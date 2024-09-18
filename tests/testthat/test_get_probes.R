@@ -16,6 +16,6 @@ test_that("get_probes()", {
                                              targets = targets,
                                              output = "output/5723646052")
   probe_ids <- yamatClassifier::get_probes(trainer = trainer)
-  expect_true(file.exists("output/5723646052/probe_ids.Rda"))
+  expect_true(file.exists("output/5723646052/probes.Rda"))
   expect_equal(length(probe_ids), 360456)
 })

@@ -6,6 +6,20 @@
 \usage{
 get_y_density_plot(data, density_lwd = 0.2, pal, y_limits, title_cex = 1.5)
 }
+\arguments{
+\item{data}{A \code{data.frame} for PCA plot. It can be created}
+
+\item{density_lwd}{density line width. Default to 0.2.}
+
+\item{pal}{point color palette.}
+
+\item{title_cex}{a float for title text size. Default to 0.7.}
+
+\item{x_limits}{X axis limits.}
+}
+\value{
+A \code{\line[ggplot2]{ggplot}} object.
+}
 \description{
 PC y density plot
 }

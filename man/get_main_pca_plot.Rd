@@ -14,6 +14,26 @@ get_main_pca_plot(
   legend_cex = 0.7
 )
 }
+\arguments{
+\item{data}{A \code{data.frame} for PCA plot. It can be created}
+
+\item{pal}{point color palette.}
+
+\item{batch_label}{a character describe the ggplot2 label for batch. Default
+to "Batch".}
+
+\item{classification_label}{a character describe the ggplot2 label for
+classification. Default to "Classification".}
+
+\item{x_label}{a character of X axis label. Default to "PC1".}
+
+\item{y_label}{a character of Y axis label. Default to "PC2".}
+
+\item{legend_cex}{a float for legend text size. Default to 0.7.}
+}
+\value{
+A \code{\line[ggplot2]{ggplot}} object.
+}
 \description{
 Main PCA plot
 }
