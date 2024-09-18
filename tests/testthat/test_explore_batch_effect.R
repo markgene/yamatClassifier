@@ -19,7 +19,7 @@ test_that("explore_batch_effect() runs without error", {
   trainer <- yamatClassifier::create_trainer(idat_dir = idat_dir,
                                              targets = targets,
                                              output = "output/5723646052")
-  meth_pca <- yamatClassifier::explore_batch_effect(
+  beta_value_pca <- yamatClassifier::explore_batch_effect(
     trainer = trainer,
     batch_name = "Batch",
     classification_name = "Diagnosis",
@@ -29,8 +29,8 @@ test_that("explore_batch_effect() runs without error", {
     k = 2,
     threshold = 0.7
   )
-  expect_true(nrow(meth_pca$pca123$eigs$vectors) == 500)
-  expect_true(ncol(meth_pca$pca123$eigs$vectors) == 2)
+  expect_true(nrow(beta_value_pca$pca123$eigs$vectors) == 500)
+  expect_true(ncol(beta_value_pca$pca123$eigs$vectors) == 2)
   expect_true(file.exists(
     "output/5723646052/batch_effect_explore/Batch_meth_rle.pdf"
   ))
@@ -39,5 +39,23 @@ test_that("explore_batch_effect() runs without error", {
   ))
   expect_true(file.exists(
     "output/5723646052/batch_effect_explore/Batch_meth_pca.pdf"
+  ))
+  expect_true(file.exists(
+    "output/5723646052/batch_effect_explore/Batch_unmeth_rle.pdf"
+  ))
+  expect_true(file.exists(
+    "output/5723646052/batch_effect_explore/Batch_unmeth_pca.Rda"
+  ))
+  expect_true(file.exists(
+    "output/5723646052/batch_effect_explore/Batch_unmeth_pca.pdf"
+  ))
+  expect_true(file.exists(
+    "output/5723646052/batch_effect_explore/Batch_beta_value_rle.pdf"
+  ))
+  expect_true(file.exists(
+    "output/5723646052/batch_effect_explore/Batch_beta_value_pca.Rda"
+  ))
+  expect_true(file.exists(
+    "output/5723646052/batch_effect_explore/Batch_beta_value_pca.pdf"
   ))
 })

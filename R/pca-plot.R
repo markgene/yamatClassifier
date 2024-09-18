@@ -70,9 +70,10 @@ plot_pca_result <- function(pca_result,
     y_limits = y_limits
   )
 
-  legend <- patchwork::wrap_ggplot_grob(ggpubr::get_legend(main_plot))
+  # plot_legend <- patchwork::wrap_ggplot_grob(ggpubr::get_legend(main_plot))
+  plot_legend <- ggplotify::as.ggplot(ggpubr::get_legend(main_plot))
   main_plot_without_legend <- main_plot + ggplot2::theme(legend.position = 'none')
-  p <- x_density_plot + legend + main_plot_without_legend + y_density_plot +
+  p <- x_density_plot + plot_legend + main_plot_without_legend + y_density_plot +
     patchwork::plot_layout(
       ncol = 2,
       nrow = 2,
@@ -80,6 +81,14 @@ plot_pca_result <- function(pca_result,
       heights = c(1, 3)
     ) +
     patchwork::plot_annotation(title = plot_title, subtitle = plot_subtitle)
+  tryCatch(
+    error = function(cnd) {
+      logger::log_error("Plot does not work")
+      logger::log_error(plot_data)
+      return(main_plot)
+    },
+    print(p)
+  )
   return(p)
   # table_grob <- gridExtra::arrangeGrob(
   #   x_density_plot,

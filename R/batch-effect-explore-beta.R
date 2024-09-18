@@ -52,10 +52,15 @@ explore_batch_effect_beta_value <- function(trainer,
     threshold = threshold
   )
   targets <- get_targets(trainer = trainer)
-  p <- plot_pca_result(pca_result,
-                       targets,
-                       batch_name = batch_name,
-                       classification_name = classification_name)
+  plot_subtitle <- glue::glue("Most variable {top_n_pca} loci.")
+  p <- plot_pca_result(
+    pca_result,
+    targets,
+    batch_name = batch_name,
+    classification_name = classification_name,
+    plot_title = "PCA of beta",
+    plot_subtitle = plot_subtitle
+  )
   batch_effect_explore_dir <- get_batch_effect_explore_dir(trainer = trainer)
   batch_prefix <- make.names(batch_name)
   beta_value_pca_pdf <- glue::glue("{batch_prefix}_{beta_value_pca_pdf}")
@@ -159,4 +164,5 @@ explore_batch_effect_beta_value_pca_compute <- function(trainer,
       ) -> beta_value_pca
     save(beta_value_pca, file = beta_value_pca_rda)
   }
+  return(beta_value_pca)
 }

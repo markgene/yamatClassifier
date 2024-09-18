@@ -219,7 +219,7 @@ get_unmeth_from_preprocessed_files <- function(trainer) {
 #' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
 #' @return a matrix of beta value.
 #' @export
-get_beta <- function(trainer) {
+get_beta_value <- function(trainer) {
   beta_value_rda <- file.path(trainer$output, trainer$beta_value_rda)
   if (file.exists(beta_value_rda)) {
     logger::log_info("Reading existing beta Rda file...")

@@ -52,10 +52,15 @@ explore_batch_effect_unmeth <- function(trainer,
     threshold = threshold
   )
   targets <- get_targets(trainer = trainer)
-  p <- plot_pca_result(pca_result,
-                       targets,
-                       batch_name = batch_name,
-                       classification_name = classification_name)
+  plot_subtitle <- glue::glue("Most variable {top_n_pca} loci. Log2 transformed (offset by 1 to avoid zeros).")
+  p <- plot_pca_result(
+    pca_result,
+    targets,
+    batch_name = batch_name,
+    classification_name = classification_name,
+    plot_title = "PCA of unmeth",
+    plot_subtitle = plot_subtitle
+  )
   batch_effect_explore_dir <- get_batch_effect_explore_dir(trainer = trainer)
   batch_prefix <- make.names(batch_name)
   unmeth_pca_pdf <- glue::glue("{batch_prefix}_{unmeth_pca_pdf}")
@@ -154,4 +159,5 @@ explore_batch_effect_unmeth_pca_compute <- function(trainer,
       ) -> unmeth_pca
     save(unmeth_pca, file = unmeth_pca_rda)
   }
+  return(unmeth_pca)
 }

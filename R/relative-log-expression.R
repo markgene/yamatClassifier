@@ -55,7 +55,7 @@ plot_relative_log_expression <- function(x,
     sampled <- pheno
   } else {
     frac <- n_samples / nrow(pheno)
-    sampled <- reference_pheno_df %>%
+    sampled <- pheno %>%
       dplyr::group_by(Batch) %>%
       dplyr::sample_frac(frac) %>%
       dplyr::arrange(Batch) %>%

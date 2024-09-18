@@ -52,10 +52,15 @@ explore_batch_effect_meth <- function(trainer,
     threshold = threshold
   )
   targets <- get_targets(trainer = trainer)
-  p <- plot_pca_result(pca_result,
-                       targets,
-                       batch_name = batch_name,
-                       classification_name = classification_name)
+  plot_subtitle <- glue::glue("Most variable {top_n_pca} loci. Log2 transformed (offset by 1 to avoid zeros).")
+  p <- plot_pca_result(
+    pca_result,
+    targets,
+    batch_name = batch_name,
+    classification_name = classification_name,
+    plot_title = "PCA of meth",
+    plot_subtitle = plot_subtitle
+  )
   batch_effect_explore_dir <- get_batch_effect_explore_dir(trainer = trainer)
   batch_prefix <- make.names(batch_name)
   meth_pca_pdf <- glue::glue("{batch_prefix}_{meth_pca_pdf}")
@@ -154,4 +159,5 @@ explore_batch_effect_meth_pca_compute <- function(trainer,
       ) -> meth_pca
     save(meth_pca, file = meth_pca_rda)
   }
+  return(meth_pca)
 }

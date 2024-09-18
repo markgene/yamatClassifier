@@ -64,7 +64,7 @@ explore_batch_effect <- function(trainer,
     threshold = threshold,
     classification_name = classification_name
   )
-  explore_batch_effect_beta(
+  explore_batch_effect_beta_value(
     trainer,
     batch_name = batch_name,
     top_n_rle = top_n_rle,
