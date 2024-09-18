@@ -44,6 +44,7 @@ explore_batch_effect <- function(trainer,
   if (!(batch_name %in% colnames(targets))) {
     stop(glue::glue("Batch name column {batch_name} not in the targets"))
   }
+  logger::log_info(glue::glue("Exploring batch effect of {batch_name} of meth..."))
   explore_batch_effect_meth(
     trainer,
     batch_name = batch_name,
@@ -54,6 +55,7 @@ explore_batch_effect <- function(trainer,
     threshold = threshold,
     classification_name = classification_name
   )
+  logger::log_info(glue::glue("Exploring batch effect of {batch_name} of unmeth..."))
   explore_batch_effect_unmeth(
     trainer,
     batch_name = batch_name,
@@ -64,6 +66,7 @@ explore_batch_effect <- function(trainer,
     threshold = threshold,
     classification_name = classification_name
   )
+  logger::log_info(glue::glue("Exploring batch effect of {batch_name} of beta..."))
   explore_batch_effect_beta_value(
     trainer,
     batch_name = batch_name,
