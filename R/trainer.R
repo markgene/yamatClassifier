@@ -135,6 +135,7 @@ get_meth_from_preprocessed_files <- function(trainer) {
     sentrix_id <- sentrix_ids[i]
     logger::log_info(glue::glue("Processing {sentrix_id} ({i}/{length(sentrix_ids)})..."))
     df <- targets[targets$Sentrix_ID == sentrix_id, ]
+    df <- df[df$Basename %in% targets$Basename, ]
     rda_file_name <- paste0(sentrix_id, ".Rda")
     mset_rda <- file.path(preprocessed_dir, rda_file_name)
     if (file.exists(mset_rda)) {
@@ -192,6 +193,7 @@ get_unmeth_from_preprocessed_files <- function(trainer) {
     sentrix_id <- sentrix_ids[i]
     logger::log_info(glue::glue("Processing {sentrix_id} ({i}/{length(sentrix_ids)})..."))
     df <- targets[targets$Sentrix_ID == sentrix_id, ]
+    df <- df[df$Basename %in% targets$Basename, ]
     rda_file_name <- paste0(sentrix_id, ".Rda")
     mset_rda <- file.path(preprocessed_dir, rda_file_name)
     if (file.exists(mset_rda)) {
