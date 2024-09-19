@@ -44,7 +44,7 @@ plot_pca_result <- function(pca_result,
     pc_x_name = pc_x_name,
     pc_y_name = pc_y_name
   )
-  classifications <- unique(pheno[, classification_name])
+  classifications <- unique(pheno[, classification_name, drop = TRUE])
   pal <- viridis::viridis_pal(option = "H")(length(classifications))
   names(pal) <- classifications
   main_plot <- get_main_pca_plot(
