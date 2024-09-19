@@ -157,6 +157,8 @@ explore_batch_effect_meth_pca_compute <- function(trainer,
         seed = seed,
         threshold = threshold
       ) -> meth_pca
+    meth_pca$pca123$scaled <- NULL
+    meth_pca$pca123$cor_mat <- NULL
     save(meth_pca, file = meth_pca_rda)
   }
   return(meth_pca)
