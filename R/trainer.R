@@ -131,8 +131,9 @@ get_meth_from_preprocessed_files <- function(trainer) {
   sentrix_ids <- unique(targets$Sentrix_ID)
   preprocessed_dir <- get_preprocessed_dir(trainer)
   probes <- get_probes(trainer = trainer)
-  meth_by_sentrix_id <- lapply(sentrix_ids, function(sentrix_id) {
-    logger::log_info(paste("Processing", sentrix_id))
+  meth_by_sentrix_id <- lapply(seq(length(sentrix_ids)), function(i) {
+    sentrix_id <- sentrix_ids[i]
+    logger::log_info(glue::glue("Processing {sentrix_id} ({i}/{length(sentrix_ids)})..."))
     df <- targets[targets$Sentrix_ID == sentrix_id, ]
     rda_file_name <- paste0(sentrix_id, ".Rda")
     mset_rda <- file.path(preprocessed_dir, rda_file_name)
@@ -187,8 +188,9 @@ get_unmeth_from_preprocessed_files <- function(trainer) {
   sentrix_ids <- unique(targets$Sentrix_ID)
   preprocessed_dir <- get_preprocessed_dir(trainer)
   probes <- get_probes(trainer = trainer)
-  unmeth_by_sentrix_id <- lapply(sentrix_ids, function(sentrix_id) {
-    logger::log_info(paste("Processing", sentrix_id))
+  unmeth_by_sentrix_id <- lapply(seq(length(sentrix_ids)), function(i) {
+    sentrix_id <- sentrix_ids[i]
+    logger::log_info(glue::glue("Processing {sentrix_id} ({i}/{length(sentrix_ids)})..."))
     df <- targets[targets$Sentrix_ID == sentrix_id, ]
     rda_file_name <- paste0(sentrix_id, ".Rda")
     mset_rda <- file.path(preprocessed_dir, rda_file_name)
