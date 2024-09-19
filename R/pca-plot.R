@@ -74,7 +74,13 @@ plot_pca_result <- function(pca_result,
   plot_legend <- ggplotify::as.ggplot(ggpubr::get_legend(main_plot))
   main_plot_without_legend <- main_plot + ggplot2::theme(legend.position = 'none')
   require(patchwork)
-  p <- x_density_plot + plot_legend + main_plot_without_legend + y_density_plot +
+  design <- "AAA#
+             BBBC
+             BBBC
+             BBBC
+             DDDD
+             DDDD"
+  p <- x_density_plot + main_plot_without_legend + y_density_plot + plot_legend +
     patchwork::plot_layout(
       ncol = 2,
       nrow = 2,
