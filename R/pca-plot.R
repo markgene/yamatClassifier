@@ -125,8 +125,8 @@ prepare_plot_data <- function(projection,
   data.frame(
     pc_x = projection[, pc_x_name],
     pc_y = projection[, pc_y_name],
-    batch = pheno[, batch_name],
-    classification = pheno[, classification_name]
+    batch = pheno[, batch_name, drop = TRUE],
+    classification = pheno[, classification_name, drop = TRUE]
   )
 }
 
