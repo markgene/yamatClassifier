@@ -68,8 +68,8 @@ explore_batch_effect_meth <- function(trainer,
   ggplot2::ggsave(
     filename = meth_pca_pdf,
     plot = p,
-    height = 8,
-    width = 8
+    height = 7 * 2.5,
+    width = 4 * 2.5
   )
 }
 

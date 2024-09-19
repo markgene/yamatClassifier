@@ -79,6 +79,7 @@ plot_pca_result <- function(pca_result,
              BBBC
              BBBC
              DDDD
+             DDDD
              DDDD"
   p <- x_density_plot + main_plot_without_legend + y_density_plot + plot_legend +
     patchwork::plot_layout(design = design) +
@@ -143,7 +144,7 @@ prepare_plot_data <- function(projection,
 #'   classification. Default to "Classification".
 #' @param x_label a character of X axis label. Default to "PC1".
 #' @param y_label a character of Y axis label. Default to "PC2".
-#' @param legend_cex a float for legend text size. Default to 0.7.
+#' @param legend_cex a float for legend text size. Default to 0.5.
 #' @return A \code{\line[ggplot2]{ggplot}} object.
 get_main_pca_plot <- function(data,
                               pal,
@@ -151,7 +152,7 @@ get_main_pca_plot <- function(data,
                               classification_label = "Classification",
                               x_label = "PC1",
                               y_label = "PC2",
-                              legend_cex = 0.7) {
+                              legend_cex = 0.5) {
   ggplot2::ggplot(
     data = data,
     mapping = ggplot2::aes(
