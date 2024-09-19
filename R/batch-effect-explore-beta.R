@@ -164,6 +164,7 @@ explore_batch_effect_beta_value_pca_compute <- function(trainer,
       ) -> beta_value_pca
     beta_value_pca$pca123$scaled <- NULL
     beta_value_pca$pca123$cor_mat <- NULL
+    beta_value_pca$pca123$eigs$vectors <- NULL
     save(beta_value_pca, file = beta_value_pca_rda)
   }
   return(beta_value_pca)

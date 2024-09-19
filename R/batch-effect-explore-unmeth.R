@@ -159,6 +159,7 @@ explore_batch_effect_unmeth_pca_compute <- function(trainer,
       ) -> unmeth_pca
     unmeth_pca$pca123$scaled <- NULL
     unmeth_pca$pca123$cor_mat <- NULL
+    unmeth_pca$pca123$eigs$vectors <- NULL
     save(unmeth_pca, file = unmeth_pca_rda)
   }
   return(unmeth_pca)

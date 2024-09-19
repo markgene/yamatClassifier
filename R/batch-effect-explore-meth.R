@@ -159,6 +159,7 @@ explore_batch_effect_meth_pca_compute <- function(trainer,
       ) -> meth_pca
     meth_pca$pca123$scaled <- NULL
     meth_pca$pca123$cor_mat <- NULL
+    meth_pca$pca123$eigs$vectors <- NULL
     save(meth_pca, file = meth_pca_rda)
   }
   return(meth_pca)
