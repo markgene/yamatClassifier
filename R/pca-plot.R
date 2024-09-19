@@ -81,12 +81,7 @@ plot_pca_result <- function(pca_result,
              DDDD
              DDDD"
   p <- x_density_plot + main_plot_without_legend + y_density_plot + plot_legend +
-    patchwork::plot_layout(
-      ncol = 2,
-      nrow = 2,
-      widths = c(3, 1),
-      heights = c(1, 3)
-    ) +
+    patchwork::plot_layout(design = design) +
     patchwork::plot_annotation(title = plot_title, subtitle = plot_subtitle)
   tryCatch(
     error = function(cnd) {
