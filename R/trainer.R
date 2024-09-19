@@ -135,7 +135,6 @@ get_meth_from_preprocessed_files <- function(trainer) {
     sentrix_id <- sentrix_ids[i]
     logger::log_info(glue::glue("Processing {sentrix_id} ({i}/{length(sentrix_ids)})..."))
     df <- targets[targets$Sentrix_ID == sentrix_id, ]
-    df <- df[df$Basename %in% targets$Basename, ]
     rda_file_name <- paste0(sentrix_id, ".Rda")
     mset_rda <- file.path(preprocessed_dir, rda_file_name)
     if (file.exists(mset_rda)) {
@@ -150,6 +149,8 @@ get_meth_from_preprocessed_files <- function(trainer) {
     }
   })
   meth <- do.call(cbind, meth_by_sentrix_id)
+  # Filter samples in the targets, - excluding samples in the same chip but not in the targets
+  meth <- meth[, colnames(meth) %in% targets$Basename]
   # dim(meth)
   rm(meth_by_sentrix_id)
   gc()
@@ -193,7 +194,6 @@ get_unmeth_from_preprocessed_files <- function(trainer) {
     sentrix_id <- sentrix_ids[i]
     logger::log_info(glue::glue("Processing {sentrix_id} ({i}/{length(sentrix_ids)})..."))
     df <- targets[targets$Sentrix_ID == sentrix_id, ]
-    df <- df[df$Basename %in% targets$Basename, ]
     rda_file_name <- paste0(sentrix_id, ".Rda")
     mset_rda <- file.path(preprocessed_dir, rda_file_name)
     if (file.exists(mset_rda)) {
@@ -208,6 +208,8 @@ get_unmeth_from_preprocessed_files <- function(trainer) {
     }
   })
   unmeth <- do.call(cbind, unmeth_by_sentrix_id)
+  # Filter samples in the targets, - excluding samples in the same chip but not in the targets
+  unmeth <- unmeth[, colnames(unmeth) %in% targets$Basename]
   # dim(unmeth)
   rm(unmeth_by_sentrix_id)
   gc()
