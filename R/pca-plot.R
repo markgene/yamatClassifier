@@ -125,12 +125,21 @@ prepare_plot_data <- function(projection,
                               classification_name,
                               pc_x_name = "PC1",
                               pc_y_name = "PC2") {
-  data.frame(
-    pc_x = projection[, pc_x_name],
-    pc_y = projection[, pc_y_name],
-    batch = pheno[, batch_name, drop = TRUE],
-    classification = pheno[, classification_name, drop = TRUE]
-  )
+  # data.frame(
+  #   pc_x = projection[, pc_x_name],
+  #   pc_y = projection[, pc_y_name],
+  #   batch = pheno[, batch_name, drop = TRUE],
+  #   classification = pheno[, classification_name, drop = TRUE]
+  # )
+  df <- data.frame(Basename = pheno[, "Basename", drop = TRUE],
+                   batch = pheno[, batch_name, drop = TRUE],
+                   classification = pheno[, classification_name, drop = TRUE])
+  output <- data.frame(pc_x = projection[, pc_x_name],
+                       pc_y = projection[, pc_y_name],
+                       Basename = rownames(projection)) %>%
+    dplyr::left_join(df, by = "Basename") %>%
+    dplyr::select(-Basename)
+  return(output)
 }
 
 
