@@ -36,7 +36,7 @@ train_batch_effect_model <- function(x,
   logger::log_debug("Fitting the model for batch effect correction...")
   if (log2_transform) {
     logger::log_debug("log2 transforming x...")
-    x <- log2(x+1)
+    x <- log2(x + 1)
   }
   fit <- limma::lmFit(x, cbind(design, X.batch), ...)
   bs <- fit$coefficients[, -(1:ncol(design)), drop = FALSE]
@@ -48,7 +48,7 @@ train_batch_effect_model <- function(x,
   adjusted <- as.matrix(x) - bs %*% t(X.batch)
   if (log2_transform) {
     logger::log_debug("Power 2 transforming adjusted...")
-    adjusted <- 2^adjusted - 1
+    adjusted <- 2 ^ adjusted - 1
     adjusted[adjusted < 0] <- 0
   }
   save(adjusted, file = adjusted_rda)
@@ -69,12 +69,12 @@ get_batch_matrix <- function(batch = NULL,
   if (!is.null(batch)) {
     batch <- as.factor(batch)
     contrasts(batch) <- contr.sum(levels(batch))
-    batch <- model.matrix(~ batch)[, -1, drop = FALSE]
+    batch <- model.matrix( ~ batch)[, -1, drop = FALSE]
   }
   if (!is.null(batch2)) {
     batch2 <- as.factor(batch2)
     contrasts(batch2) <- contr.sum(levels(batch2))
-    batch2 <- model.matrix(~ batch2)[, -1, drop = FALSE]
+    batch2 <- model.matrix( ~ batch2)[, -1, drop = FALSE]
   }
   if (!is.null(covariates))
     covariates <- as.matrix(covariates)

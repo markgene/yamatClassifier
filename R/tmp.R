@@ -1,19 +1,28 @@
-
-# set.seed(123)
-# x <- matrix(rnorm(10 * 18), 10, 18)
-# x[, 1:3] <- x[, 1:3] + 5
-# batch <- rep(c("A", "B", "C"), each = 6)
-# batch2 <- rep(c("D", "E"), 9)
-# batch <- as.factor(batch)
-# batch2 <- as.factor(batch2)
-# batch2 <- as.factor(batch2)
-# covariates <- NULL
-# X.batch <- yamatClassifier:::get_batch_matrix(batch = batch,
-#                                               batch2 = batch2,
-#                                               covariates =  covariates)
-# X.batch
-# design = matrix(1, ncol(x), 1)
-# fit <- limma::lmFit(x, cbind(design, X.batch))
-# bs <- fit$coefficients[, -(1:ncol(design)), drop = FALSE]
-# bs[is.na(beta)] <- 0
-# fit$coefficients_batch_effect <- bs
+# # Batch effect correction for trainer set on meth
+#
+# library(logger)
+# library(yamatClassifier)
+#
+# logger::log_threshold(DEBUG)
+#
+# data_dir <- "/home/chenm8/beegfs/projects/MC123_SarcomaClassifier/data/GSE140686"
+# output <- "/home/chenm8/beegfs/projects/MC123_SarcomaClassifier/output/GSE140686"
+#
+# trainer_rda <- file.path(output, "trainer.Rda")
+# if (file.exists(trainer_rda)) {
+#   logger::log_info("Reading existing trainer Rda file")
+#   load(trainer_rda)
+# } else {
+#   logger::log_error("fail to find the trainer Rda file")
+# }
+#
+# meth <- yamatClassifier::get_meth(trainer = trainer)
+# targets <- yamatClassifier:::get_targets(trainer = trainer)
+#
+# yamatClassifier::train_batch_effect_model(
+#   x = dat$x,
+#   batch = dat$batch,
+#   batch2 = dat$batch2,
+#   adjusted_rda = "output/batch_effect_adjusted.Rda",
+#   fit_rda = "output/batch_effect_fit.Rda"
+# )

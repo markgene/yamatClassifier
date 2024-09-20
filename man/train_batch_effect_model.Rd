@@ -10,6 +10,7 @@ train_batch_effect_model(
   batch2 = NULL,
   covariates = NULL,
   design = matrix(1, ncol(x), 1),
+  log2_transform = TRUE,
   adjusted_rda = "adjusted.Rda",
   fit_rda = "fit.Rda",
   ...
@@ -27,6 +28,9 @@ train_batch_effect_model(
 \item{design}{design matrix relating to treatment conditions to be
 preserved, usually the design matrix with all experimental factors other
 than the batch effects.}
+
+\item{log2_transform}{if perform log2 transform with offset 1, i.e. formula
+log2(x+1).}
 
 \item{adjusted_rda}{the file save the adjusted value.}
 
