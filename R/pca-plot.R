@@ -139,6 +139,9 @@ prepare_plot_data <- function(projection,
                        Basename = rownames(projection)) %>%
     dplyr::left_join(df, by = "Basename") %>%
     dplyr::select(-Basename)
+  if (!all(!is.na(output$batch))) {
+    stop("pheno does not have all the items of projection")
+  }
   return(output)
 }
 
