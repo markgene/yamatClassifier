@@ -24,6 +24,7 @@ Imports:
     tidyr (>= 0.8),
     logger (>= 0.3.0),
     corrplot (>= 0.84),
+    limma (>= 3.60.0),
     IlluminaHumanMethylationEPICv2manifest (>= 1.0.0),
     IlluminaHumanMethylationEPICv2anno.20a1.hg38 (>= 1.0.0)
 Suggests: knitr,

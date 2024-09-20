@@ -11,7 +11,7 @@ get_main_pca_plot(
   classification_label = "Classification",
   x_label = "PC1",
   y_label = "PC2",
-  legend_cex = 0.7
+  legend_cex = 0.5
 )
 }
 \arguments{
@@ -29,7 +29,7 @@ classification. Default to "Classification".}
 
 \item{y_label}{a character of Y axis label. Default to "PC2".}
 
-\item{legend_cex}{a float for legend text size. Default to 0.7.}
+\item{legend_cex}{a float for legend text size. Default to 0.5.}
 }
 \value{
 A \code{\line[ggplot2]{ggplot}} object.
