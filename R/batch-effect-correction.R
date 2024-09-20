@@ -10,6 +10,8 @@
 #' @param design design matrix relating to treatment conditions to be
 #'   preserved, usually the design matrix with all experimental factors other
 #'   than the batch effects.
+#' @param log2_transform if perform log2 transform with offset 1, i.e. formula
+#'   log2(x+1).
 #' @param adjusted_rda the file save the adjusted value.
 #' @param fit_rda the file save the model.
 #' @param ... parameters pass to \code{\link[limma]{lmFit}}.
@@ -21,6 +23,7 @@ train_batch_effect_model <- function(x,
                                      batch2 = NULL,
                                      covariates = NULL,
                                      design = matrix(1, ncol(x), 1),
+                                     log2_transform = TRUE,
                                      adjusted_rda = "adjusted.Rda",
                                      fit_rda = "fit.Rda",
                                      ...) {
@@ -31,6 +34,10 @@ train_batch_effect_model <- function(x,
                               batch2 = batch2,
                               covariates =  covariates)
   logger::log_debug("Fitting the model for batch effect correction...")
+  if (log2_transform) {
+    logger::log_debug("log2 transforming x...")
+    x <- log2(x+1)
+  }
   fit <- limma::lmFit(x, cbind(design, X.batch), ...)
   bs <- fit$coefficients[, -(1:ncol(design)), drop = FALSE]
   bs[is.na(beta)] <- 0
@@ -39,6 +46,11 @@ train_batch_effect_model <- function(x,
   save(fit, file = fit_rda)
   logger::log_debug("Adjusting for batch effect...")
   adjusted <- as.matrix(x) - bs %*% t(X.batch)
+  if (log2_transform) {
+    logger::log_debug("Power 2 transforming adjusted...")
+    adjusted <- 2^adjusted - 1
+    adjusted[adjusted < 0] <- 0
+  }
   save(adjusted, file = adjusted_rda)
 }
 
