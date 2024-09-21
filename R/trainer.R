@@ -314,6 +314,7 @@ run_fitsne <- function(trainer,
   logger::log_info(glue::glue("Getting the {top_n} most variable loci..."))
   beta_vals_top_n <- most_variable(beta_value_adjusted, top_n = top_n)
   embedding_rda <- glue::glue("fitsne_embedding_{top_n}_{perplexity}_{n_iter}_{random_state}.Rda")
+  embedding_rda <- file.path(trainer$output, embedding_rda)
   logger::log_info(
     glue::glue(
       "Performing fit-SNE. perplexity={perplexity}, n_iter={n_iter}, random_state={random_state} ..."
@@ -326,6 +327,8 @@ run_fitsne <- function(trainer,
     n_iter = n_iter,
     ...
   )
+  rownames(embedding) <- colnames(beta_value_adjusted)
+  colnames(embedding) <- c("tSNE1", "tSNE2")
   logger::log_info("Saving embedding into Rda file")
   save(embedding, file = embedding_rda)
   return(embedding)

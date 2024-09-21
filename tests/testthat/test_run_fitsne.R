@@ -18,13 +18,14 @@ test_that("get_beta()", {
   beta_value_adjusted <- yamatClassifier::get_beta_value(trainer = trainer)
   beta_value_adjusted_rda <- yamatClassifier::get_beta_value_adjusted_rda((trainer = trainer))
   save(beta_value_adjusted, file = beta_value_adjusted_rda)
-  embeddings <- yamatClassifier::run_fitsne(
+  embedding <- yamatClassifier::run_fitsne(
     trainer = trainer,
     top_n = 100,
     perplexity = 30,
     n_iter = 5,
     random_state = 123
   )
-  expect_true(ncol(embeddings) == 2)
-  expect_true(nrow(embeddings) == nrow(targets))
+  expect_true(ncol(embedding) == 2)
+  expect_true(nrow(embedding) == nrow(targets))
+  expect_true(all(rownames(embedding) == colnames(beta_value_adjusted)))
 })
