@@ -320,7 +320,7 @@ run_fitsne <- function(trainer,
     )
   )
   embedding <- snifter::fitsne(
-    beta_vals_top_n,
+    t(beta_vals_top_n),
     random_state = random_state,
     perplexity = perplexity,
     n_iter = n_iter,

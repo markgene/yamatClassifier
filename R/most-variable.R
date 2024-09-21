@@ -12,10 +12,12 @@
 #' @return A matrix of beta values of most variably methylated loci.
 #' @export
 most_variable <- function(x, top_n = 1000) {
-  if (missing(x))
+  if (missing(x)) {
     stop("Require argument x.")
+  }
   row_sd <- matrixStats::rowSds(x)
-  head(x[order(row_sd, decreasing = TRUE), ], n = top_n)
+  output <- utils::head(x[order(row_sd, decreasing = TRUE), ], n = top_n)
+  return(output)
 }
 
 
