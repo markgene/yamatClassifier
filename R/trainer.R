@@ -9,6 +9,10 @@
 #' @param preprocessed_dir preprocessed file directory.
 #' @param batch_effect_explore_dir batch effect exploratory analysis directory.
 #' @param meth_rda meth Rda file.
+#' @param unmeth_rda unmeth Rda file.
+#' @param beta_value_rda beta value Rda file.
+#' @param beta_value_adjusted_rda adjusted beta value Rda file.
+#' @param trainer_rda \code{YamatClassifierTrainer} object Rda file.
 #' @param overwrite A bool if overwrite the result files.
 #' @return A S3 object of \code{YamatClassifierTrainer} class.
 #' @export
@@ -23,6 +27,7 @@ create_trainer <- function(idat_dir,
                            meth_rda = "meth.Rda",
                            unmeth_rda = "unmeth.Rda",
                            beta_value_rda = "beta_value.Rda",
+                           beta_value_adjusted_rda = "beta_value_adjusted.Rda",
                            trainer_rda = "trainer.Rda",
                            overwrite = FALSE) {
   if (is.null(targets$Sentrix_ID)) {
@@ -40,6 +45,7 @@ create_trainer <- function(idat_dir,
     meth_rda = meth_rda,
     unmeth_rda = unmeth_rda,
     beta_value_rda = beta_value_rda,
+    beta_value_adjusted_rda = beta_value_adjusted_rda,
     trainer_rda = trainer_rda,
     overwrite = overwrite
   )
@@ -52,6 +58,7 @@ create_trainer <- function(idat_dir,
 #'
 #' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
 #' @return path of preprocessed file directory.
+#' @export
 get_preprocessed_dir <- function(trainer) {
   preprocessed_dir <- file.path(trainer$output, trainer$preprocessed_dir)
   if (!dir.exists(preprocessed_dir)) {
@@ -65,6 +72,7 @@ get_preprocessed_dir <- function(trainer) {
 #'
 #' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
 #' @return path of the directory of batch effect exploratory analysis.
+#' @export
 get_batch_effect_explore_dir <- function(trainer) {
   batch_effect_explore_dir <- file.path(trainer$output, trainer$batch_effect_explore_dir)
   if (!dir.exists(batch_effect_explore_dir)) {
@@ -78,8 +86,19 @@ get_batch_effect_explore_dir <- function(trainer) {
 #'
 #' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
 #' @return path of probe ID file.
+#' @export
 get_probes_rda <- function(trainer) {
   file.path(trainer$output, trainer$probes_rda)
+}
+
+
+#' Get adjusted beta value Rda file path.
+#'
+#' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
+#' @return path of adjusted beta value Rda file.
+#' @export
+get_beta_value_adjusted_rda <- function(trainer) {
+  file.path(trainer$output, trainer$beta_value_adjusted_rda)
 }
 
 
@@ -97,6 +116,7 @@ get_trainer_rda <- function(trainer) {
 #'
 #' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
 #' @return \code{data.frame} of targets. See \code{\link[minfi]{read.metharray.exp}}.
+#' @export
 get_targets <- function(trainer) {
   trainer$targets
 }
@@ -244,3 +264,27 @@ get_beta_value <- function(trainer) {
   )
   return(beta_value)
 }
+
+
+#' Get adjusted beta value.
+#'
+#' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
+#' @return a matrix of beta value.
+#' @export
+get_beta_value_adjusted <- function(trainer) {
+  beta_value_adjusted_rda <- get_beta_value_adjusted_rda(trainer = trainer)
+  if (file.exists(beta_value_adjusted_rda)) {
+    logger::log_info(glue::glue("Reading existing beta Rda file {beta_value_adjusted_rda}..."))
+    load(beta_value_adjusted_rda)
+    return(beta_value_adjusted)
+  } else {
+    stop("fail to find Rda file of adjusted beta value")
+  }
+}
+
+
+#' Computing t-SNE with fit-SNE algorithm.
+#'
+#' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
+#' @return a matrix of beta value.
+#' @export
