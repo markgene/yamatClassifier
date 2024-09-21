@@ -274,7 +274,9 @@ get_beta_value <- function(trainer) {
 get_beta_value_adjusted <- function(trainer) {
   beta_value_adjusted_rda <- get_beta_value_adjusted_rda(trainer = trainer)
   if (file.exists(beta_value_adjusted_rda)) {
-    logger::log_info(glue::glue("Reading existing beta Rda file {beta_value_adjusted_rda}..."))
+    logger::log_info(glue::glue(
+      "Reading existing beta Rda file {beta_value_adjusted_rda}..."
+    ))
     load(beta_value_adjusted_rda)
     return(beta_value_adjusted)
   } else {
@@ -285,6 +287,43 @@ get_beta_value_adjusted <- function(trainer) {
 
 #' Computing t-SNE with fit-SNE algorithm.
 #'
+#' Perform t-SNE with fit-SNE algorithm using \code{\link[snifter]{fitsne}} in
+#' snifter package.
+#'
 #' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
-#' @return a matrix of beta value.
+#' @param top_n an integer of the most variable N loci for t-SNE
+#' @param perplexity Numeric scalar controlling the neighborhood used when
+#'   estimating the embedding. Default to 30.
+#' @param n_iter Integer scalar specifying the number of iterations to complete.
+#'   Default to 3000.
+#' @param random_state Integer scalar specifying the seed used by the random
+#'   number generator.
+#' @param ... other arguments of \code{\link[snifter]{fitsne}}.
+#' @return A matrix of t-SNE embeddings.
 #' @export
+run_fitsne <- function(trainer,
+                       top_n = 10000,
+                       perplexity = 30,
+                       n_iter = 3000,
+                       random_state = 123,
+                       ...) {
+  beta_value_adjusted <- get_beta_value_adjusted(trainer = trainer)
+  logger::log_info(glue::glue("Getting the {top_n} most variable loci..."))
+  beta_vals_top_n <- most_variable(beta_value_adjusted, top_n = top_n)
+  embedding_rda <- glue::glue("fitsne_embedding_{top_n}_{perplexity}_{n_iter}_{random_state}.Rda")
+  logger::log_info(
+    glue::glue(
+      "Performing fit-SNE. perplexity={perplexity}, n_iter={n_iter}, random_state={random_state} ..."
+    )
+  )
+  embedding <- snifter::fitsne(
+    beta_vals_top_n,
+    random_state = random_state,
+    perplexity = perplexity,
+    n_iter = n_iter,
+    ...
+  )
+  logger::log_info("Saving embedding into Rda file")
+  save(embedding, file = embedding_rda)
+  return(embedding)
+}
