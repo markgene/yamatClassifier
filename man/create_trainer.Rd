@@ -16,6 +16,7 @@ create_trainer(
   meth_rda = "meth.Rda",
   unmeth_rda = "unmeth.Rda",
   beta_value_rda = "beta_value.Rda",
+  beta_value_adjusted_rda = "beta_value_adjusted.Rda",
   trainer_rda = "trainer.Rda",
   overwrite = FALSE
 )
@@ -38,6 +39,14 @@ create_trainer(
 \item{batch_effect_explore_dir}{batch effect exploratory analysis directory.}
 
 \item{meth_rda}{meth Rda file.}
+
+\item{unmeth_rda}{unmeth Rda file.}
+
+\item{beta_value_rda}{beta value Rda file.}
+
+\item{beta_value_adjusted_rda}{adjusted beta value Rda file.}
+
+\item{trainer_rda}{\code{YamatClassifierTrainer} object Rda file.}
 
 \item{overwrite}{A bool if overwrite the result files.}
 }

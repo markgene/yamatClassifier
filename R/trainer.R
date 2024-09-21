@@ -300,6 +300,9 @@ get_beta_value_adjusted <- function(trainer) {
 #'   number generator.
 #' @param ... other arguments of \code{\link[snifter]{fitsne}}.
 #' @return A matrix of t-SNE embeddings.
+#' @details
+#'   Notice set \code{pca} argument as default (FALSE). Otherwise,
+#'   \code{\link[snifter]{project}} will not work.
 #' @export
 run_fitsne <- function(trainer,
                        top_n = 10000,
