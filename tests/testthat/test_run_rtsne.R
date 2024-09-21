@@ -1,8 +1,8 @@
-context("Test run_fitsne()")
+context("Test get_beta()")
 library(yamatClassifier)
 
 
-test_that("run_fitsne()", {
+test_that("get_beta()", {
   idat_dir <- file.path(system.file("extdata", package = "minfiData"), "5723646052")
   targets <- data.frame(
     Basename = c(
@@ -18,12 +18,13 @@ test_that("run_fitsne()", {
   beta_value_adjusted <- yamatClassifier::get_beta_value(trainer = trainer)
   beta_value_adjusted_rda <- yamatClassifier::get_beta_value_adjusted_rda((trainer = trainer))
   save(beta_value_adjusted, file = beta_value_adjusted_rda)
-  embedding <- yamatClassifier::run_fitsne(
+  embedding <- yamatClassifier::run_rtsne(
     trainer = trainer,
     top_n = 100,
     perplexity = 30,
     n_iter = 5,
-    random_state = 123
+    random_state = 123,
+    verbose = TRUE
   )
   expect_true(ncol(embedding) == 2)
   expect_true(nrow(embedding) == nrow(targets))

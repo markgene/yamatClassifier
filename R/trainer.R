@@ -333,3 +333,54 @@ run_fitsne <- function(trainer,
   save(embedding, file = embedding_rda)
   return(embedding)
 }
+
+
+#' Computing t-SNE with \code{\link[Rtsne]{Rtsne}}.
+#'
+#' Perform t-SNE with fit-SNE algorithm using \code{\link[Rtsne]{Rtsne}}.
+#'
+#' @param trainer A S3 object of \code{YamatClassifierTrainer} class.
+#' @param top_n an integer of the most variable N loci for t-SNE
+#' @param perplexity Numeric scalar controlling the neighborhood used when
+#'   estimating the embedding. Default to 30.
+#' @param n_iter Integer scalar specifying the number of iterations to complete.
+#'   Default to 3000.
+#' @param random_state Integer scalar specifying the seed used by the random
+#'   number generator.
+#' @param ... other arguments of \code{\link[Rtsne]{Rtsne}}.
+#' @return A matrix of t-SNE embeddings.
+#' @details
+#'   Notice set \code{pca} argument as default (TRUE).
+#' @export
+run_rtsne <- function(trainer,
+                      top_n = 10000,
+                      perplexity = 30,
+                      n_iter = 3000,
+                      random_state = 123,
+                      verbose = TRUE,
+                      ...) {
+  beta_value_adjusted <- get_beta_value_adjusted(trainer = trainer)
+  logger::log_info(glue::glue("Getting the {top_n} most variable loci..."))
+  beta_vals_top_n <- most_variable(beta_value_adjusted, top_n = top_n)
+  embedding_rda <- glue::glue("rtsne_embedding_{top_n}_{perplexity}_{n_iter}_{random_state}.Rda")
+  embedding_rda <- file.path(trainer$output, embedding_rda)
+  logger::log_info(
+    glue::glue(
+      "Performing t-SNE. perplexity={perplexity}, max_iter={n_iter}, seed={random_state} ..."
+    )
+  )
+  set.seed(random_state)
+  rtsne_result <- Rtsne::Rtsne(
+    t(beta_vals_top_n),
+    perplexity = perplexity,
+    max_iter = n_iter,
+    verbose = verbose,
+    ...
+  )
+  embedding <- rtsne_result$Y
+  rownames(embedding) <- colnames(beta_value_adjusted)
+  colnames(embedding) <- c("tSNE1", "tSNE2")
+  logger::log_info("Saving embedding into Rda file")
+  save(embedding, rtsne_result, file = embedding_rda)
+  return(embedding)
+}
