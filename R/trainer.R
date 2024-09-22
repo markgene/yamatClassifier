@@ -298,6 +298,8 @@ get_beta_value_adjusted <- function(trainer) {
 #'   Default to 3000.
 #' @param random_state Integer scalar specifying the seed used by the random
 #'   number generator.
+#' @param pca Logical scalar specifying whether PCA should be run on the data
+#'   before creating the embedding.
 #' @param ... other arguments of \code{\link[snifter]{fitsne}}.
 #' @return A matrix of t-SNE embeddings.
 #' @details
@@ -309,6 +311,7 @@ run_fitsne <- function(trainer,
                        perplexity = 30,
                        n_iter = 3000,
                        random_state = 123,
+                       pca = FALSE,
                        ...) {
   beta_value_adjusted <- get_beta_value_adjusted(trainer = trainer)
   logger::log_info(glue::glue("Getting the {top_n} most variable loci..."))
@@ -317,7 +320,7 @@ run_fitsne <- function(trainer,
   embedding_rda <- file.path(trainer$output, embedding_rda)
   logger::log_info(
     glue::glue(
-      "Performing fit-SNE. perplexity={perplexity}, n_iter={n_iter}, random_state={random_state} ..."
+      "Performing fit-SNE. perplexity={perplexity}, n_iter={n_iter}, random_state={random_state}, pca={pca} ..."
     )
   )
   embedding <- snifter::fitsne(
@@ -325,6 +328,7 @@ run_fitsne <- function(trainer,
     random_state = random_state,
     perplexity = perplexity,
     n_iter = n_iter,
+    pca = pca,
     ...
   )
   rownames(embedding) <- colnames(beta_value_adjusted)
@@ -347,6 +351,8 @@ run_fitsne <- function(trainer,
 #'   Default to 3000.
 #' @param random_state Integer scalar specifying the seed used by the random
 #'   number generator.
+#' @param pca Logical scalar specifying whether PCA should be run on the data
+#'   before creating the embedding.
 #' @param ... other arguments of \code{\link[Rtsne]{Rtsne}}.
 #' @return A matrix of t-SNE embeddings.
 #' @details
@@ -357,6 +363,7 @@ run_rtsne <- function(trainer,
                       perplexity = 30,
                       n_iter = 3000,
                       random_state = 123,
+                      pca = TRUE,
                       verbose = TRUE,
                       ...) {
   beta_value_adjusted <- get_beta_value_adjusted(trainer = trainer)
@@ -366,7 +373,7 @@ run_rtsne <- function(trainer,
   embedding_rda <- file.path(trainer$output, embedding_rda)
   logger::log_info(
     glue::glue(
-      "Performing t-SNE. perplexity={perplexity}, max_iter={n_iter}, seed={random_state} ..."
+      "Performing t-SNE. perplexity={perplexity}, max_iter={n_iter}, seed={random_state}, pca={pca} ..."
     )
   )
   set.seed(random_state)
@@ -374,6 +381,7 @@ run_rtsne <- function(trainer,
     t(beta_vals_top_n),
     perplexity = perplexity,
     max_iter = n_iter,
+    pca = pca,
     verbose = verbose,
     ...
   )
