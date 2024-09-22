@@ -21,7 +21,7 @@ test_that("get_beta()", {
   embedding <- yamatClassifier::run_rtsne(
     trainer = trainer,
     top_n = 100,
-    perplexity = 30,
+    perplexity = 0.5,
     n_iter = 5,
     random_state = 123,
     verbose = TRUE
