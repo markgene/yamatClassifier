@@ -300,6 +300,8 @@ get_beta_value_adjusted <- function(trainer) {
 #'   number generator.
 #' @param pca Logical scalar specifying whether PCA should be run on the data
 #'   before creating the embedding.
+#' @param save_result Logical scalar specifying whether result should be saved
+#'   in Rda file.
 #' @param ... other arguments of \code{\link[snifter]{fitsne}}.
 #' @return A matrix of t-SNE embeddings.
 #' @details
@@ -312,11 +314,12 @@ run_fitsne <- function(trainer,
                        n_iter = 3000,
                        random_state = 123,
                        pca = FALSE,
+                       save_result = TRUE,
                        ...) {
   beta_value_adjusted <- get_beta_value_adjusted(trainer = trainer)
   logger::log_info(glue::glue("Getting the {top_n} most variable loci..."))
   beta_vals_top_n <- most_variable(beta_value_adjusted, top_n = top_n)
-  embedding_rda <- glue::glue("fitsne_embedding_{top_n}_{perplexity}_{n_iter}_{random_state}.Rda")
+  embedding_rda <- glue::glue("fitsne_embedding_{top_n}_{perplexity}_{n_iter}_{random_state}_{pca}.Rda")
   embedding_rda <- file.path(trainer$output, embedding_rda)
   logger::log_info(
     glue::glue(
@@ -333,8 +336,10 @@ run_fitsne <- function(trainer,
   )
   rownames(embedding) <- colnames(beta_value_adjusted)
   colnames(embedding) <- c("tSNE1", "tSNE2")
-  logger::log_info("Saving embedding into Rda file")
-  save(embedding, file = embedding_rda)
+  if (save_result) {
+    logger::log_info("Saving embedding into Rda file")
+    save(embedding, file = embedding_rda)
+  }
   return(embedding)
 }
 
@@ -353,6 +358,8 @@ run_fitsne <- function(trainer,
 #'   number generator.
 #' @param pca Logical scalar specifying whether PCA should be run on the data
 #'   before creating the embedding.
+#' @param save_result Logical scalar specifying whether result should be saved
+#'   in Rda file.
 #' @param ... other arguments of \code{\link[Rtsne]{Rtsne}}.
 #' @return A matrix of t-SNE embeddings.
 #' @details
@@ -365,11 +372,12 @@ run_rtsne <- function(trainer,
                       random_state = 123,
                       pca = TRUE,
                       verbose = TRUE,
+                      save_result = FALSE,
                       ...) {
   beta_value_adjusted <- get_beta_value_adjusted(trainer = trainer)
   logger::log_info(glue::glue("Getting the {top_n} most variable loci..."))
   beta_vals_top_n <- most_variable(beta_value_adjusted, top_n = top_n)
-  embedding_rda <- glue::glue("rtsne_embedding_{top_n}_{perplexity}_{n_iter}_{random_state}.Rda")
+  embedding_rda <- glue::glue("rtsne_embedding_{top_n}_{perplexity}_{n_iter}_{random_state}_{pca}.Rda")
   embedding_rda <- file.path(trainer$output, embedding_rda)
   logger::log_info(
     glue::glue(
@@ -388,7 +396,9 @@ run_rtsne <- function(trainer,
   embedding <- rtsne_result$Y
   rownames(embedding) <- colnames(beta_value_adjusted)
   colnames(embedding) <- c("tSNE1", "tSNE2")
-  logger::log_info("Saving embedding into Rda file")
-  save(embedding, rtsne_result, file = embedding_rda)
+  if (save_result) {
+    logger::log_info("Saving embedding into Rda file")
+    save(embedding, file = embedding_rda)
+  }
   return(embedding)
 }
