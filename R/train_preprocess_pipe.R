@@ -1,4 +1,7 @@
-#' Train pipeline
+#' Train preprocess pipeline
+#'
+#' Preprocess for the training/reference data set from IDAT file to beta values.
+#' Notice batch effect correction is not included.
 #'
 #' @param idat_dir IDAT file directory.
 #' @param targets \code{data.frame} of targets. See \code{\link[minfi]{read.metharray.exp}}.
@@ -6,7 +9,7 @@
 #' @param overwrite A bool if overwrite the result files.
 #' @return A S3 object of \code{YamatClassifierTrainer} class.
 #' @export
-train <- function(idat_dir, targets, output, overwrite = FALSE) {
+train_preprocess_pipe <- function(idat_dir, targets, output, overwrite = FALSE) {
   logger::log_info("Creating YamatClassifierTrainer object")
   trainer <- create_trainer(
     idat_dir = idat_dir,
