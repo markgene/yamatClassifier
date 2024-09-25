@@ -9,7 +9,7 @@ select_features_boruta <- function(dat, response_name, ...) {
   logger::log_debug("Running Boruta...")
   input_formula <- stats::as.formula(paste(response_name, "~ ."))
   boruta_result <- Boruta::Boruta(input_formula, data = dat, doTrace = 2, ...)
-  logger::log_debug(glue::glue("{selected_features} features selected by Boruta algorithm."))
   selected_features <- Boruta::getSelectedAttributes(boruta_result, withTentative = FALSE)
+  logger::log_debug(glue::glue("{length(selected_features)} features selected by Boruta algorithm."))
   return(selected_features)
 }
