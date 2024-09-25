@@ -33,20 +33,23 @@ train_model1(
 \item{verbose}{A bool.}
 }
 \value{
-To be added.
+a list of cross-validation result of given \code{mtry} values.
 }
 \description{
-Key steps:
+Train model 1
 }
 \details{
-1. Feature selection with Boruta method.
-2. Tuning loop tunes single parameter \code{mtry}.
-3. Outer cross-validation split the data set into training and testing set of
-M folds.
-4. Inner cross-validation split the training set of the outer CV into N folds.
-Each fold does the feature selection and random forest classification. When
-all folds are done. Train calibration model of Ridge multinomial logistic
-regression (MR) regression. The lambda is trained with
-\code{\link[glmnet]{cv.glmnet}}. The random forest and calibration models are
-used for the testing set of the outer CV.
+Key steps:
+  \enumerate{
+    \item Tuning loop tunes single parameter \code{mtry}.
+    \item Outer cross-validation split the data set into training and testing
+      set of M folds.
+    \item Inner cross-validation split the training set of the outer CV into
+      N folds. Each fold does the feature selection with Boruta algorithm and
+      random forest classification. When all folds are done. Train calibration
+      model of Ridge multinomial logistic regression (MR) regression. The
+      lambda is trained with \code{\link[glmnet]{cv.glmnet}}. The random
+      forest and calibration models are used for the testing set of the outer
+      CV.
+  }
 }

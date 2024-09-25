@@ -2,18 +2,6 @@
 
 #' Train model 1
 #'
-#' Key steps:
-#'
-#' 1. Feature selection with Boruta method.
-#' 2. Tuning loop tunes single parameter \code{mtry}.
-#' 3. Outer cross-validation split the data set into training and testing set of
-#' M folds.
-#' 4. Inner cross-validation split the training set of the outer CV into N folds.
-#' Each fold does the feature selection and random forest classification. When
-#' all folds are done. Train calibration model of Ridge multinomial logistic
-#' regression (MR) regression. The lambda is trained with
-#' \code{\link[glmnet]{cv.glmnet}}. The random forest and calibration models are
-#' used for the testing set of the outer CV.
 #'
 #' @param dat a \code{data.frame} of input data.
 #' @param response_name column name of the response.
@@ -23,7 +11,20 @@
 #' @param random_state random seed.
 #' @param mtry A vector of mtry for parameter tuning.
 #' @param verbose A bool.
-#' @return To be added.
+#' @return a list of cross-validation result of given \code{mtry} values.
+#' @details Key steps:
+#'   \enumerate{
+#'     \item Tuning loop tunes single parameter \code{mtry}.
+#'     \item Outer cross-validation split the data set into training and testing
+#'       set of M folds.
+#'     \item Inner cross-validation split the training set of the outer CV into
+#'       N folds. Each fold does the feature selection with Boruta algorithm and
+#'       random forest classification. When all folds are done. Train calibration
+#'       model of Ridge multinomial logistic regression (MR) regression. The
+#'       lambda is trained with \code{\link[glmnet]{cv.glmnet}}. The random
+#'       forest and calibration models are used for the testing set of the outer
+#'       CV.
+#'   }
 #' @export
 train_model1 <- function(dat,
                            response_name,
