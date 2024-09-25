@@ -13,7 +13,7 @@
 #' @param verbose A bool.
 #' @return To be added.
 #' @export
-train_boruta_rf_ridge <- function(dat,
+train_rf_ridge <- function(dat,
                                   response_name,
                                   feature_selection = c("Boruta"),
                                   outer_cv_folds = 5,
