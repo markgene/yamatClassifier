@@ -1,141 +1,89 @@
-# # Perform t-SNE for train/reference set with fit SNE
+# # Install and load necessary libraries
+# install.packages("Boruta")        # Boruta for feature selection
+# install.packages("randomForest")  # Random Forest for classification
+# install.packages("caret")         # Caret for cross-validation and hyperparameter tuning
 #
-# library(dplyr)
-# library(ggplot2)
-# library(logger)
+# library(Boruta)
+# library(randomForest)
+# library(caret)
+# library(mlbench)
+# data(Sonar)
 #
-# logger::log_threshold(DEBUG)
 #
-# prepare_plot_data <- function(embedding,
-#                               pheno,
-#                               batch_name,
-#                               classification_name,
-#                               pc_x_name = "PC1",
-#                               pc_y_name = "PC2") {
-#   df <- data.frame(Basename = pheno[, "Basename", drop = TRUE],
-#                    batch = pheno[, batch_name, drop = TRUE],
-#                    classification = pheno[, classification_name, drop = TRUE])
-#   output <- data.frame(pc_x = projection[, pc_x_name],
-#                        pc_y = projection[, pc_y_name],
-#                        Basename = rownames(projection)) %>%
-#     dplyr::left_join(df, by = "Basename") %>%
-#     dplyr::select(-Basename)
-#   if (!all(!is.na(output$batch))) {
-#     stop("pheno does not have all the items of projection")
-#   }
-#   return(output)
-# }
+# # Perform Boruta feature selection
+# set.seed(123)  # For reproducibility
+# boruta_result <- Boruta(Class ~ ., data = Sonar, doTrace = 2)
 #
-# data_dir <- "/home/chenm8/beegfs/projects/MC123_SarcomaClassifier/data/GSE140686"
-# output <- "/home/chenm8/beegfs/projects/MC123_SarcomaClassifier/output/GSE140686"
+# # Print the feature selection result
+# print(boruta_result)
 #
-# trainer_rda <- file.path(output, "trainer.Rda")
-# if (file.exists(trainer_rda)) {
-#   logger::log_info("Reading existing trainer Rda file")
-#   load(trainer_rda)
-# } else {
-#   logger::log_error("fail to find the trainer Rda file")
-# }
+# # Get the selected features (only Confirmed attributes)
+# selected_features <- getSelectedAttributes(boruta_result, withTentative = FALSE)
+# print(selected_features)
 #
-# logger::log_info("Get phenotype data")
-# load(file.path(output, "methylation_class.Rda"))
+# # Subset the dataset with selected features
+# sonar_boruta <- Sonar[, c(selected_features, "Class")]  # 'Class' is the target variable
 #
-# meth_classification <- methylation_class %>%
-#   dplyr::rename(MethylationClassName = `Methylation Class Name (in alphabetical order)`, Abbreviation = `Methylation Class Name Abbreviated`) %>%
-#   dplyr::select(MethylationClassName, Abbreviation)
+# # Create outer CV
+# outer_fold <- 5
+# set.seed(67)
+# outer_test_indexes <- caret::createDataPartition(sonar_boruta$Class, times = outer_fold, p = (1/outer_fold))
 #
-# pheno <- trainer$targets %>%
-#   dplyr::rename(
-#     MethylationClassName = `Methylation Class Name`,
-#     TumorCellContent = `Tumour cell content [absolute]`,
-#     Color = Colour,
-#     Platform_ID = platform_id
-#   ) %>%
-#   dplyr::select(
-#     MethylationClassName,
-#     TumorCellContent,
-#     Sample_Prep,
-#     Supplier,
-#     Platform_ID,
-#     Diagnosis,
-#     Color,
-#     Basename
-#   ) %>%
-#   dplyr::mutate(Color = glue::glue("#{Color}")) %>%
-#   dplyr::left_join(meth_classification, by = "MethylationClassName")
+# for (test_indexes in outer_test_indexes) {
+#   outer_test <- sonar_boruta[test_indexes, ]
+#   outer_train <- sonar_boruta[-test_indexes, ]
+#   # Set up control for 5x5 cross-validation
+#   control <- trainControl(method = "repeatedcv", number = 5, repeats = 5, search = "grid")
 #
-# params <- expand.grid(
-#   top_n = 10000,
-#   perplexity = c(1, 3, 5, 10, 30),
-#   n_iter = c(500, 1000, 3000),
-#   random_state = c(1, 123, 42, 33, 210),
-#   pca = c(TRUE, FALSE)
-# )
+#   # Define the grid of hyperparameters to tune
+#   # Here, we are tuning 'mtry' (number of variables randomly sampled at each split)
+#   tune_grid <- expand.grid(mtry = seq(2, length(selected_features), by = 10))
 #
-# train_rtsne_tune_file <- file.path(output, glue::glue("train_rtsne_tune.pdf"))
-# pdf(file = train_rtsne_tune_file,
-#     height = 11,
-#     widht = 14)
-# for (i in seq(nrow(params))) {
-#   top_n <- params[i, "top_n"]
-#   perplexity <- params[i, "perplexity"]
-#   n_iter <- params[i, "n_iter"]
-#   random_state <- params[i, "random_state"]
-#   pca <- params[i, "pca"]
-#   logger::log_debug(
-#     glue::glue(
-#       "Performing and plotting t-SNE. top_n={top_n}, perplexity={perplexity}, max_iter={n_iter}, seed={random_state}, pca={pca} ..."
-#     )
+#   # Train Random Forest model with 5x5 cross-validation and parameter tuning
+#   set.seed(123)  # For reproducibility
+#   rf_model <- train(
+#     Class ~ .,
+#     data = outer_train,
+#     method = "rf",
+#     tuneGrid = tune_grid,
+#     trControl = control,
+#     importance = TRUE
 #   )
-#   embedding <- yamatClassifier::run_rtsne(
-#     trainer = trainer,
-#     top_n = top_n,
-#     perplexity = perplexity,
-#     n_iter = n_iter,
-#     random_state = random_state,
-#     pca = pca,
-#     verbose = TRUE,
-#     save_result = FALSE
-#   )
-#   plot_data <- embedding %>%
-#     as.data.frame() %>%
-#     tibble::rownames_to_column(var = "Basename") %>%
-#     dplyr::left_join(pheno, by = "Basename")
-#
-#   if (!all(!is.na(plot_data$Abbreviation))) {
-#     stop("missing methylation classification abbreviation")
-#   }
-#
-#   pal_df <- plot_data %>%
-#     dplyr::select(Abbreviation, Color) %>%
-#     dplyr::distinct() %>%
-#     tibble::column_to_rownames(var = "Abbreviation")
-#   pal <- pal_df$Color
-#   names(pal) <- pal_df$Abbreviation
-#
-#   ggplot2::ggplot(data = plot_data, mapping = aes(x = tSNE1, y = tSNE2)) +
-#     ggplot2::geom_point(mapping = aes(color = Abbreviation), ) +
-#     ggplot2::scale_color_manual(values = pal, drop = FALSE) +
-#     ggplot2::labs(x = "t-SNE 1", y = "t-SNE 2", color = "Tumor Class Abbreviation") +
-#     ggplot2::guides(color = ggplot2::guide_legend(ncol = 2)) +
-#     ggplot2::theme_bw() +
-#     ggplot2::theme(
-#       panel.grid = ggplot2::element_blank(),
-#       legend.position = "right",
-#       # legend.key.height = unit(0.5, units = "in"),
-#       # legend.key.width = unit(0.3, units = "in"),
-#       axis.text.x = ggplot2::element_text(angle = 0, hjust = 1),
-#       strip.text.y.left = ggplot2::element_text(angle = 0, size = 10),
-#       strip.text.x = ggplot2::element_text(size = 10)
-#     ) +
-#     patchwork::plot_annotation(
-#       title = glue::glue("t-SNE"),
-#       subtitle = glue::glue(
-#         "Each dot is a sample. Color by methylation class. Beta value of most variable {top_n} loci are used.",
-#         "Parameters: top_n={top_n}, perplexity={perplexity}, max_iter={n_iter}, seed={random_state}, pca={pca}"
-#       ),
-#       theme = ggplot2::theme(plot.subtitle = ggplot2::element_text(hjust = 0, size = 9))
-#     ) -> tsne_p
-#   print(tsne_p)
 # }
-# dev.off()
+#
+# control <- trainControl(method = "cv",
+#                         number = 5,
+#                         classProbs = TRUE,  # Enable probability estimation
+#                         summaryFunction = multiClassSummary)  # For multi-class
+#
+# # Train the Random Forest model
+# set.seed(123)
+# rf_model <- train(Class ~ .,
+#                   data = outer_train,
+#                   method = "rf",
+#                   trControl = control,
+#                   tuneLength = 5)
+#
+# # Get predicted probabilities on the training data
+# predicted_probs <- predict(rf_model, newdata = outer_train, type = "prob") %>%
+#   as.matrix()
+# ridge_multiclass_model <- glmnet::glmnet(predicted_probs, outer_train$Class, family = "multinomial", alpha = 0)
+# cv_ridge_multiclass <- cv.glmnet(predicted_probs, outer_train$Class, family = "multinomial", alpha = 0)
+# calibrated_probs <- predict(cv_ridge_multiclass, newx = predicted_probs, s = "lambda.min", type = "response")
+#
+#
+# # Print the final model and the best hyperparameters
+# print(rf_model)
+#
+# # View the best value of mtry
+# print(rf_model$bestTune)
+#
+# # Plot the model performance for different mtry values
+# plot(rf_model)
+#
+# # Get the feature importance from the final Random Forest model
+# importance <- varImp(rf_model, scale = FALSE)
+# print(importance)
+#
+# # Plot variable importance
+# plot(importance)

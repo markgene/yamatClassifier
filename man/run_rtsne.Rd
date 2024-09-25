@@ -10,7 +10,9 @@ run_rtsne(
   perplexity = 30,
   n_iter = 3000,
   random_state = 123,
+  pca = TRUE,
   verbose = TRUE,
+  save_result = FALSE,
   ...
 )
 }
@@ -27,6 +29,12 @@ Default to 3000.}
 
 \item{random_state}{Integer scalar specifying the seed used by the random
 number generator.}
+
+\item{pca}{Logical scalar specifying whether PCA should be run on the data
+before creating the embedding.}
+
+\item{save_result}{Logical scalar specifying whether result should be saved
+in Rda file.}
 
 \item{...}{other arguments of \code{\link[Rtsne]{Rtsne}}.}
 }
