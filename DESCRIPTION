@@ -26,6 +26,8 @@ Imports:
     corrplot (>= 0.84),
     limma (>= 3.60.0),
     caret (>= 6.0),
+    randomForest (>= 4.7),
+    glmnet (>= 4.1),
     Boruta (>= 8.0),
     MLmetrics (>= 1.1.0),
     IlluminaHumanMethylationEPICv2manifest (>= 1.0.0),
