@@ -14,13 +14,13 @@
 #' @return To be added.
 #' @export
 train_rf_ridge <- function(dat,
-                                  response_name,
-                                  feature_selection = c("Boruta"),
-                                  outer_cv_folds = 5,
-                                  inner_cv_folds = 5,
-                                  random_state = 56,
-                                  rf_grid = NULL,
-                                  verbose = TRUE) {
+                           response_name,
+                           feature_selection = c("Boruta"),
+                           outer_cv_folds = 5,
+                           inner_cv_folds = 5,
+                           random_state = 56,
+                           rf_grid = NULL,
+                           verbose = TRUE) {
   if (!(response_name %in% colnames(dat))) {
     stop(glue::glue("fail to find variable {response_name}"))
   }
@@ -60,7 +60,7 @@ train_rf_ridge <- function(dat,
     )
     cv_result <- lapply(seq(length(outer_train_indexes)), function(i) {
       outer_train_index <- outer_train_indexes[[i]]
-      calibrated_prob_response <- train_boruta_rf_ridge_outer_fold(
+      calibrated_prob_response <- train_rf_ridge_outer_fold(
         dat = dat,
         response_name = response_name,
         outer_train_index = outer_train_index,
@@ -89,15 +89,15 @@ train_rf_ridge <- function(dat,
 #' @param rf_grid A data frame with possible tuning values. See \code{\link[caret]{train}}.
 #' @param verbose A bool.
 #' @return a \code{data.frame} of calibrated probabilities and response variable.
-train_boruta_rf_ridge_outer_fold <- function(dat,
-                               response_name,
-                               outer_train_index,
-                               random_state,
-                               feature_selection = c("Boruta"),
-                               inner_cv_folds = 5,
-                               rf_grid = NULL,
-                               verbose = TRUE,
-                               ...) {
+train_rf_ridge_outer_fold <- function(dat,
+                                      response_name,
+                                      outer_train_index,
+                                      random_state,
+                                      feature_selection = c("Boruta"),
+                                      inner_cv_folds = 5,
+                                      rf_grid = NULL,
+                                      verbose = TRUE,
+                                      ...) {
   outer_train <- dat[outer_train_index, ]
   outer_test <- dat[-outer_train_index, ]
   if (feature_selection == "Boruta") {
@@ -113,7 +113,7 @@ train_boruta_rf_ridge_outer_fold <- function(dat,
     selected_features <- select_features_boruta(outer_train_downsampled, response_name = response_name)
   }
   outer_train <- outer_train[, c(selected_features, response_name)]
-  mods <- train_boruta_rf_ridge_inner_fold(
+  mods <- train_rf_ridge_inner_fold(
     outer_train,
     response_name = response_name,
     inner_cv_folds = inner_cv_folds,
@@ -143,13 +143,13 @@ train_boruta_rf_ridge_outer_fold <- function(dat,
 #' @param rf_grid A data frame with possible tuning values. See \code{\link[caret]{train}}.
 #' @param verbose A bool.
 #' @return a list of two models of random forest and calibration model respectively.
-train_boruta_rf_ridge_inner_fold <- function(outer_train,
-                               response_name,
-                               inner_cv_folds = 5,
-                               random_state,
-                               rf_grid = NULL,
-                               verbose = TRUE,
-                               ...) {
+train_rf_ridge_inner_fold <- function(outer_train,
+                                      response_name,
+                                      inner_cv_folds = 5,
+                                      random_state,
+                                      rf_grid = NULL,
+                                      verbose = TRUE,
+                                      ...) {
   if (is.null(rf_grid)) {
     stop("parameter tuning grid is required.")
   }
