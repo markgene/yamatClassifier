@@ -1,12 +1,12 @@
-context("Test train_rf_ridge() with Boruta feature selection")
+context("Test train_model1()")
 library(yamatClassifier)
 library(glmnet)
 library(randomForest)
 
-test_that("train_rf_ridge() end-to-end", {
+test_that("train_model1() end-to-end", {
   require(datasets)
   utils::data(iris)
-  tune_result <- yamatClassifier::train_rf_ridge(
+  tune_result <- yamatClassifier::train_model1(
     dat = iris,
     response_name = "Species",
     feature_selection = "Boruta",
