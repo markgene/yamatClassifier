@@ -34,7 +34,8 @@ train_model1_outer_fold(
 \item{verbose}{A bool.}
 }
 \value{
-a \code{data.frame} of calibrated probabilities and response variable.
+a list of two attributes, a \code{data.frame} of calibrated
+  probabilities and response variable, and a vector of selected features.
 }
 \description{
 Train model 1 - Process the outer fold

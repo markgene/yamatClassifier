@@ -10,6 +10,11 @@
 #' @param inner_cv_folds inner cross-validation fold number.
 #' @param random_state random seed.
 #' @param mtry A vector of mtry for parameter tuning.
+#' @param save_level if save_level > 0, save outer train index. If save_level > 1,
+#'   save calibrated probabilities and selected features in addition.
+#' @param save_prefix output file prefix.
+#' @param overwrite overwrite existing result files or not.
+#' @param output output directory.
 #' @param verbose A bool.
 #' @return a list of cross-validation result of given \code{mtry} values.
 #' @details Key steps:
@@ -27,13 +32,23 @@
 #'   }
 #' @export
 train_model1 <- function(dat,
-                           response_name,
-                           feature_selection = c("Boruta"),
-                           outer_cv_folds = 5,
-                           inner_cv_folds = 5,
-                           random_state = 56,
-                           mtry = NULL,
-                           verbose = TRUE) {
+                         response_name,
+                         feature_selection = c("Boruta"),
+                         outer_cv_folds = 5,
+                         inner_cv_folds = 5,
+                         random_state = 56,
+                         mtry = NULL,
+                         save_level = 3,
+                         save_prefix = "train_model1_",
+                         overwrite = FALSE,
+                         output = NULL,
+                         verbose = TRUE) {
+  if (save_level > 0 && is.null(output)) {
+    stop("output is required when save level > 0")
+  }
+  if (!is.null(output)) {
+    dir.create(output, recursive = TRUE)
+  }
   if (!(response_name %in% colnames(dat))) {
     stop(glue::glue("fail to find variable {response_name}"))
   }
@@ -49,22 +64,56 @@ train_model1 <- function(dat,
     mtry <- mtry_base
   }
   set.seed(random_state)
-  logger::log_debug(
-    glue::glue(
-      "Creating outer CV folds: {outer_cv_folds} folds and random_state={random_state}"
+  outer_train_indexes_rda <- file.path(output,
+                                       glue::glue("{save_prefix}outer_train_indexes.Rda"))
+  if (file.exists(outer_train_indexes_rda)) {
+    if (!overwrite) {
+      logger::log_debug(
+        glue::glue(
+          "Loading outer CV folds: {outer_cv_folds} folds and random_state={random_state}"
+        )
+      )
+      load(outer_train_indexes_rda)
+    }
+
+  } else {
+    logger::log_debug(
+      glue::glue(
+        "Creating outer CV folds: {outer_cv_folds} folds and random_state={random_state}"
+      )
     )
-  )
-  outer_train_indexes <- caret::createFolds(responses,
-                                            k = outer_cv_folds,
-                                            list = TRUE,
-                                            returnTrain = TRUE)
+    outer_train_indexes <- caret::createFolds(responses,
+                                              k = outer_cv_folds,
+                                              list = TRUE,
+                                              returnTrain = TRUE)
+    if (save_level > 0) {
+      save(outer_train_indexes, file = outer_train_indexes_rda)
+    }
+  }
   tune_result <- lapply(mtry, function(mtry_i) {
     rf_grid <- expand.grid(mtry = mtry_i)
     logger::log_debug(glue::glue("Use random forest parameters mtry={mtry_i}"))
     cv_result <- lapply(seq(length(outer_train_indexes)), function(i) {
       logger::log_debug(glue::glue("Outer fold #{i}"))
+      calibrated_prob_response_i_rda <- file.path(
+        output,
+        glue::glue(
+          "{save_prefix}calibrated_prob_response_mtry{mtry_i}_fold_{i}.Rda"
+        )
+      )
+      if (file.exists(calibrated_prob_response_i_rda)) {
+        if (!overwrite) {
+          logger::log_debug(
+            glue::glue(
+              "Loading calibrated prob from {calibrated_prob_response_i_rda}"
+            )
+          )
+          load(calibrated_prob_response_i_rda)
+          return(calibrated_prob_response)
+        }
+      }
       outer_train_index <- outer_train_indexes[[i]]
-      calibrated_prob_response <- train_model1_outer_fold(
+      output <- train_model1_outer_fold(
         dat = dat,
         response_name = response_name,
         outer_train_index = outer_train_index,
@@ -74,7 +123,17 @@ train_model1 <- function(dat,
         rf_grid = rf_grid,
         verbose = verbose
       )
+      calibrated_prob_response <- ouput$calibrated_prob_response
       gc()
+      if (save_level > 1) {
+        logger::log_debug(
+          glue::glue(
+            "Saving calibrated prob and selected features into {calibrated_prob_response_i_rda}"
+          )
+        )
+        selected_features <- ouput$selected_features
+        save(calibrated_prob_response, selected_features, file = calibrated_prob_response_i_rda)
+      }
       calibrated_prob_response
     })
     do.call(rbind, cv_result)
@@ -93,16 +152,17 @@ train_model1 <- function(dat,
 #' @param inner_cv_folds inner cross-validation fold number.
 #' @param rf_grid A data frame with possible tuning values. See \code{\link[caret]{train}}.
 #' @param verbose A bool.
-#' @return a \code{data.frame} of calibrated probabilities and response variable.
+#' @return a list of two attributes, a \code{data.frame} of calibrated
+#'   probabilities and response variable, and a vector of selected features.
 train_model1_outer_fold <- function(dat,
-                                      response_name,
-                                      outer_train_index,
-                                      random_state,
-                                      feature_selection = c("Boruta"),
-                                      inner_cv_folds = 5,
-                                      rf_grid = NULL,
-                                      verbose = TRUE,
-                                      ...) {
+                                    response_name,
+                                    outer_train_index,
+                                    random_state,
+                                    feature_selection = c("Boruta"),
+                                    inner_cv_folds = 5,
+                                    rf_grid = NULL,
+                                    verbose = TRUE,
+                                    ...) {
   if (is.null(rf_grid)) {
     stop("parameter tuning grid is required.")
   }
@@ -140,9 +200,14 @@ train_model1_outer_fold <- function(dat,
     s = "lambda.min",
     type = "response"
   )
-  output <- cbind(calibrated_probs, outer_test[, response_name, drop = FALSE])
+  calibrated_prob_response <- cbind(calibrated_probs, outer_test[, response_name, drop = FALSE])
   gc()
-  return(output)
+  return(
+    list(
+      selected_features = selected_features,
+      calibrated_prob_response = calibrated_prob_response
+    )
+  )
 }
 
 
@@ -157,12 +222,12 @@ train_model1_outer_fold <- function(dat,
 #' @param verbose A bool.
 #' @return a list of two models of random forest and calibration model respectively.
 train_model1_inner_fold <- function(outer_train,
-                                      response_name,
-                                      inner_cv_folds = 5,
-                                      random_state,
-                                      rf_grid = NULL,
-                                      verbose = TRUE,
-                                      ...) {
+                                    response_name,
+                                    inner_cv_folds = 5,
+                                    random_state,
+                                    rf_grid = NULL,
+                                    verbose = TRUE,
+                                    ...) {
   if (is.null(rf_grid)) {
     stop("parameter tuning grid is required.")
   }
@@ -208,5 +273,3 @@ train_model1_inner_fold <- function(outer_train,
   gc()
   return(list(rf_model = rf_model, calibration_model = cv_ridge_multiclass))
 }
-
-

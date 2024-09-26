@@ -12,6 +12,10 @@ train_model1(
   inner_cv_folds = 5,
   random_state = 56,
   mtry = NULL,
+  save_level = 3,
+  save_prefix = "train_model1_",
+  overwrite = FALSE,
+  output = NULL,
   verbose = TRUE
 )
 }
@@ -29,6 +33,15 @@ train_model1(
 \item{random_state}{random seed.}
 
 \item{mtry}{A vector of mtry for parameter tuning.}
+
+\item{save_level}{if save_level > 0, save outer train index. If save_level > 1,
+save calibrated probabilities and selected features in addition.}
+
+\item{save_prefix}{output file prefix.}
+
+\item{overwrite}{overwrite existing result files or not.}
+
+\item{output}{output directory.}
 
 \item{verbose}{A bool.}
 }
