@@ -113,7 +113,7 @@ train_model1 <- function(dat,
         }
       }
       outer_train_index <- outer_train_indexes[[i]]
-      output <- train_model1_outer_fold(
+      outer_fold_result <- train_model1_outer_fold(
         dat = dat,
         response_name = response_name,
         outer_train_index = outer_train_index,
@@ -123,7 +123,7 @@ train_model1 <- function(dat,
         rf_grid = rf_grid,
         verbose = verbose
       )
-      calibrated_prob_response <- ouput$calibrated_prob_response
+      calibrated_prob_response <- outer_fold_result$calibrated_prob_response
       gc()
       if (save_level > 1) {
         logger::log_debug(
@@ -131,7 +131,7 @@ train_model1 <- function(dat,
             "Saving calibrated prob and selected features into {calibrated_prob_response_i_rda}"
           )
         )
-        selected_features <- ouput$selected_features
+        selected_features <- outer_fold_result$selected_features
         save(calibrated_prob_response, selected_features, file = calibrated_prob_response_i_rda)
       }
       calibrated_prob_response
