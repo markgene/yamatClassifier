@@ -62,6 +62,7 @@ train_model1 <- function(dat,
     rf_grid <- expand.grid(mtry = mtry_i)
     logger::log_debug(glue::glue("Use random forest parameters mtry={mtry_i}"))
     cv_result <- lapply(seq(length(outer_train_indexes)), function(i) {
+      logger::log_debug(glue::glue("Outer fold #{i}"))
       outer_train_index <- outer_train_indexes[[i]]
       calibrated_prob_response <- train_model1_outer_fold(
         dat = dat,
@@ -73,6 +74,7 @@ train_model1 <- function(dat,
         rf_grid = rf_grid,
         verbose = verbose
       )
+      gc()
       calibrated_prob_response
     })
     do.call(rbind, cv_result)
@@ -119,6 +121,7 @@ train_model1_outer_fold <- function(dat,
     selected_features <- select_features_boruta(outer_train_downsampled, response_name = response_name)
   }
   outer_train <- outer_train[, c(selected_features, response_name)]
+  logger::log_debug("Inner cross validation")
   mods <- train_model1_inner_fold(
     outer_train,
     response_name = response_name,
@@ -127,8 +130,10 @@ train_model1_outer_fold <- function(dat,
     rf_grid = rf_grid,
     verbose = verbose
   )
+  logger::log_debug("Run random forest model on outer fold testing data set")
   predicted_probs <- predict(mods$rf_model, newdata = outer_test, type = "prob") %>%
     as.matrix()
+  logger::log_debug("Run calibration model on outer fold testing data set")
   calibrated_probs <- predict(
     mods$calibration_model,
     newx = predicted_probs,
@@ -136,6 +141,7 @@ train_model1_outer_fold <- function(dat,
     type = "response"
   )
   output <- cbind(calibrated_probs, outer_test[, response_name, drop = FALSE])
+  gc()
   return(output)
 }
 
@@ -168,6 +174,7 @@ train_model1_inner_fold <- function(outer_train,
     summaryFunction = caret::multiClassSummary
   )
   # Train the Random Forest model
+  logger::log_debug("Train random forest model")
   set.seed(random_state)
   input_formula <- stats::as.formula(paste(response_name, "~ ."))
   rf_model <- caret::train(
@@ -180,6 +187,7 @@ train_model1_inner_fold <- function(outer_train,
   )
 
   # Get predicted probabilities on the training data
+  logger::log_debug("Train Ridge regression for calibration")
   predicted_probs <- predict(rf_model, newdata = outer_train, type = "prob") %>%
     as.matrix()
   # ridge_multiclass_model <- glmnet::glmnet(predicted_probs,
@@ -197,6 +205,7 @@ train_model1_inner_fold <- function(outer_train,
   #                             newx = predicted_probs,
   #                             s = "lambda.min",
   #                             type = "response")
+  gc()
   return(list(rf_model = rf_model, calibration_model = cv_ridge_multiclass))
 }
 

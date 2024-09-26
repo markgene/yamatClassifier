@@ -1,89 +1,78 @@
-# # Install and load necessary libraries
-# install.packages("Boruta")        # Boruta for feature selection
-# install.packages("randomForest")  # Random Forest for classification
-# install.packages("caret")         # Caret for cross-validation and hyperparameter tuning
+# # Feature selection with Boruta algorithm
 #
-# library(Boruta)
-# library(randomForest)
-# library(caret)
-# library(mlbench)
-# data(Sonar)
+# library(dplyr)
+# library(ggplot2)
+# library(logger)
+# library(yamatClassifier)
 #
+# logger::log_threshold(DEBUG)
 #
-# # Perform Boruta feature selection
-# set.seed(123)  # For reproducibility
-# boruta_result <- Boruta(Class ~ ., data = Sonar, doTrace = 2)
+# # Real data
 #
-# # Print the feature selection result
-# print(boruta_result)
+# data_dir <- "/home/chenm8/beegfs/projects/MC123_SarcomaClassifier/data/GSE140686"
+# output <- "/home/chenm8/beegfs/projects/MC123_SarcomaClassifier/output/GSE140686"
 #
-# # Get the selected features (only Confirmed attributes)
-# selected_features <- getSelectedAttributes(boruta_result, withTentative = FALSE)
-# print(selected_features)
-#
-# # Subset the dataset with selected features
-# sonar_boruta <- Sonar[, c(selected_features, "Class")]  # 'Class' is the target variable
-#
-# # Create outer CV
-# outer_fold <- 5
-# set.seed(67)
-# outer_test_indexes <- caret::createDataPartition(sonar_boruta$Class, times = outer_fold, p = (1/outer_fold))
-#
-# for (test_indexes in outer_test_indexes) {
-#   outer_test <- sonar_boruta[test_indexes, ]
-#   outer_train <- sonar_boruta[-test_indexes, ]
-#   # Set up control for 5x5 cross-validation
-#   control <- trainControl(method = "repeatedcv", number = 5, repeats = 5, search = "grid")
-#
-#   # Define the grid of hyperparameters to tune
-#   # Here, we are tuning 'mtry' (number of variables randomly sampled at each split)
-#   tune_grid <- expand.grid(mtry = seq(2, length(selected_features), by = 10))
-#
-#   # Train Random Forest model with 5x5 cross-validation and parameter tuning
-#   set.seed(123)  # For reproducibility
-#   rf_model <- train(
-#     Class ~ .,
-#     data = outer_train,
-#     method = "rf",
-#     tuneGrid = tune_grid,
-#     trControl = control,
-#     importance = TRUE
-#   )
+# trainer_rda <- file.path(output, "trainer.Rda")
+# if (file.exists(trainer_rda)) {
+#   logger::log_info("Reading existing trainer Rda file")
+#   load(trainer_rda)
+# } else {
+#   logger::log_error("fail to find the trainer Rda file")
 # }
 #
-# control <- trainControl(method = "cv",
-#                         number = 5,
-#                         classProbs = TRUE,  # Enable probability estimation
-#                         summaryFunction = multiClassSummary)  # For multi-class
+# logger::log_info("Get phenotype data")
+# load(file.path(output, "methylation_class.Rda"))
 #
-# # Train the Random Forest model
-# set.seed(123)
-# rf_model <- train(Class ~ .,
-#                   data = outer_train,
-#                   method = "rf",
-#                   trControl = control,
-#                   tuneLength = 5)
+# meth_classification <- methylation_class %>%
+#   dplyr::rename(MethylationClassName = `Methylation Class Name (in alphabetical order)`, Abbreviation = `Methylation Class Name Abbreviated`) %>%
+#   dplyr::select(MethylationClassName, Abbreviation)
 #
-# # Get predicted probabilities on the training data
-# predicted_probs <- predict(rf_model, newdata = outer_train, type = "prob") %>%
-#   as.matrix()
-# ridge_multiclass_model <- glmnet::glmnet(predicted_probs, outer_train$Class, family = "multinomial", alpha = 0)
-# cv_ridge_multiclass <- cv.glmnet(predicted_probs, outer_train$Class, family = "multinomial", alpha = 0)
-# calibrated_probs <- predict(cv_ridge_multiclass, newx = predicted_probs, s = "lambda.min", type = "response")
+# pheno <- trainer$targets %>%
+#   dplyr::rename(
+#     MethylationClassName = `Methylation Class Name`,
+#     TumorCellContent = `Tumour cell content [absolute]`,
+#     Color = Colour,
+#     Platform_ID = platform_id
+#   ) %>%
+#   dplyr::select(
+#     MethylationClassName,
+#     TumorCellContent,
+#     Sample_Prep,
+#     Supplier,
+#     Platform_ID,
+#     Diagnosis,
+#     Color,
+#     Basename
+#   ) %>%
+#   dplyr::mutate(Color = glue::glue("#{Color}")) %>%
+#   dplyr::left_join(meth_classification, by = "MethylationClassName") %>%
+#   # dplyr::mutate(MethylationClass = glue::glue("{MethylationClassName} ({Abbreviation})")) %>%
+#   dplyr::mutate(MethylationClass = make.names(Abbreviation)) %>%
+#   dplyr::mutate(MethylationClass = factor(MethylationClass)) %>%
+#   dplyr::select(Basename, MethylationClass)
 #
+# # Use testing data
+# beta_value_adjusted_test_rda <- file.path(output, "beta_value_adjusted_test.Rda")
+# load(beta_value_adjusted_test_rda)
+# # Use real data set
+# # beta_value_adjusted <- yamatClassifier::get_beta_value_adjusted(trainer = trainer)
+# pheno_sorted <- pheno[order(match(pheno$Basename, colnames(beta_value_adjusted))), ]
+# dat <- beta_value_adjusted %>%
+#   t() %>%
+#   as.data.frame() %>%
+#   cbind(pheno_sorted[, "MethylationClass", drop = FALSE]) %>%
+#   dplyr::mutate(MethylationClass = factor(MethylationClass))
 #
-# # Print the final model and the best hyperparameters
-# print(rf_model)
+# tune_result <- yamatClassifier::train_model1(
+#   dat = dat,
+#   response_name = "MethylationClass",
+#   feature_selection = "Boruta",
+#   outer_cv_folds = 5,
+#   inner_cv_folds = 5,
+#   random_state = 42,
+#   mtry = 13,
+#   verbose = TRUE
+# )
 #
-# # View the best value of mtry
-# print(rf_model$bestTune)
-#
-# # Plot the model performance for different mtry values
-# plot(rf_model)
-#
-# # Get the feature importance from the final Random Forest model
-# importance <- varImp(rf_model, scale = FALSE)
-# print(importance)
-#
-# # Plot variable importance
-# plot(importance)
+# tune_result_rda <- file.path(output, "tune_result.Rda")
+# save(tune_result, file = tune_result_rda)
