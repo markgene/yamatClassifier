@@ -1,14 +1,16 @@
-# Training model 1
+# Training model 2
 
-#' Train model 1
+#' Train model 2
 #'
 #' @param dat a \code{data.frame} of input data.
 #' @param response_name column name of the response.
-#' @param feature_selection feature selection method.
 #' @param outer_cv_folds outer cross-validation fold number.
 #' @param inner_cv_folds inner cross-validation fold number.
 #' @param random_state random seed.
 #' @param mtry A vector of mtry for parameter tuning.
+#' @param top_n top N loci/features.
+#' @param feature_selection_ranger_num_tree \code{num.trees} of \code{\link[ranger]{ranger}}.
+#' @param importance \code{importance} of \code{\link[ranger]{ranger}}.
 #' @param save_level if save_level > 0, save outer train index. If save_level > 1,
 #'   save calibrated probabilities and selected features in addition.
 #' @param save_prefix output file prefix.
@@ -30,15 +32,17 @@
 #'       CV.
 #'   }
 #' @export
-train_model1 <- function(dat,
+train_model2 <- function(dat,
                          response_name,
-                         feature_selection = c("Boruta"),
                          outer_cv_folds = 5,
                          inner_cv_folds = 5,
                          random_state = 56,
                          mtry = NULL,
+                         top_n = 10000,
+                         feature_selection_ranger_num_trees = 100,
+                         importance = "permutation",
                          save_level = 3,
-                         save_prefix = "train_model1_",
+                         save_prefix = "train_model2_",
                          overwrite = FALSE,
                          output = NULL,
                          verbose = TRUE) {
@@ -112,14 +116,16 @@ train_model1 <- function(dat,
         }
       }
       outer_train_index <- outer_train_indexes[[i]]
-      outer_fold_result <- train_model1_outer_fold(
+      outer_fold_result <- train_model2_outer_fold(
         dat = dat,
         response_name = response_name,
         outer_train_index = outer_train_index,
         random_state = random_state + i,
-        feature_selection = feature_selection,
         inner_cv_folds = inner_cv_folds,
         rf_grid = rf_grid,
+        top_n = top_n,
+        feature_selection_range_num_trees = feature_selection_ranger_num_trees,
+        importance = importance,
         verbose = verbose
       )
       calibrated_prob_response <- outer_fold_result$calibrated_prob_response
@@ -141,25 +147,29 @@ train_model1 <- function(dat,
 }
 
 
-#' Train model 1 - Process the outer fold
+#' Train model 2 - Process the outer fold
 #'
 #' @param dat a \code{data.frame} of input data.
 #' @param response_name column name of the response.
 #' @param outer_train_index outer train sample indexes.
 #' @param random_state random seed.
-#' @param feature_selection feature selection method.
 #' @param inner_cv_folds inner cross-validation fold number.
 #' @param rf_grid A data frame with possible tuning values. See \code{\link[caret]{train}}.
+#' @param top_n top N loci/features.
+#' @param feature_selection_ranger_num_tree \code{num.trees} of \code{\link[ranger]{ranger}}.
+#' @param importance \code{importance} of \code{\link[ranger]{ranger}}.
 #' @param verbose A bool.
 #' @return a list of two attributes, a \code{data.frame} of calibrated
 #'   probabilities and response variable, and a vector of selected features.
-train_model1_outer_fold <- function(dat,
+train_model2_outer_fold <- function(dat,
                                     response_name,
                                     outer_train_index,
                                     random_state,
-                                    feature_selection = c("Boruta"),
                                     inner_cv_folds = 5,
                                     rf_grid = NULL,
+                                    top_n = 10000,
+                                    feature_selection_ranger_num_trees = 100,
+                                    importance = "permutation",
                                     verbose = TRUE,
                                     ...) {
   if (is.null(rf_grid)) {
@@ -167,21 +177,25 @@ train_model1_outer_fold <- function(dat,
   }
   outer_train <- dat[outer_train_index, ]
   outer_test <- dat[-outer_train_index, ]
-  if (feature_selection == "Boruta") {
-    y <- outer_train[, response_name, drop = TRUE]
-    logger::log_debug("Downsampling by the minimum of sample number across the response levels")
-    min_n_sample <- min(table(y))
-    set.seed(random_state + 1)
-    outer_train_downsampled <- outer_train %>%
-      dplyr::group_by(across(all_of(response_name))) %>%
-      dplyr::sample_n(size = min_n_sample) %>%
-      dplyr::ungroup()
-    logger::log_debug("Selecting features with Boruta algorithm")
-    selected_features <- select_features_boruta(outer_train_downsampled, response_name = response_name)
-  }
+  logger::log_debug("Downsampling by the minimum of sample number across the response levels")
+  y <- outer_train[, response_name, drop = TRUE]
+  min_n_sample <- min(table(y))
+  set.seed(random_state + 1)
+  outer_train_downsampled <- outer_train %>%
+    dplyr::group_by(across(all_of(response_name))) %>%
+    dplyr::sample_n(size = min_n_sample) %>%
+    dplyr::ungroup()
+  logger::log_debug("Selecting features with random forest with ranger")
+  selected_features <- select_features_ranger(
+    outer_train_downsampled,
+    response_name = response_name,
+    top_n = top_n,
+    num_trees = feature_selection_ranger_num_trees,
+    importance = importance
+  )
   outer_train <- outer_train[, c(selected_features, response_name)]
   logger::log_debug("Inner cross validation")
-  mods <- train_model1_inner_fold(
+  mods <- train_model2_inner_fold(
     outer_train,
     response_name = response_name,
     inner_cv_folds = inner_cv_folds,
@@ -210,7 +224,7 @@ train_model1_outer_fold <- function(dat,
 }
 
 
-#' Train model 1 - process the inner fold
+#' Train model 2 - process the inner fold
 #'
 #' @param outer_train a \code{data.frame} of one fold of training set during
 #'   nested cross-validation.
@@ -220,7 +234,7 @@ train_model1_outer_fold <- function(dat,
 #' @param rf_grid A data frame with possible tuning values. See \code{\link[caret]{train}}.
 #' @param verbose A bool.
 #' @return a list of two models of random forest and calibration model respectively.
-train_model1_inner_fold <- function(outer_train,
+train_model2_inner_fold <- function(outer_train,
                                     response_name,
                                     inner_cv_folds = 5,
                                     random_state,
