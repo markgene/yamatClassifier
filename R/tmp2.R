@@ -11,8 +11,6 @@
 #
 # data_dir <- "/home/chenm8/beegfs/projects/MC123_SarcomaClassifier/data/GSE140686"
 # output <- "/home/chenm8/beegfs/projects/MC123_SarcomaClassifier/output/GSE140686"
-# random_state <- 39
-# batch_size <- 600 # sqrt(360456 probes)
 #
 # trainer_rda <- file.path(output, "trainer.Rda")
 # if (file.exists(trainer_rda)) {
@@ -48,29 +46,38 @@
 #   ) %>%
 #   dplyr::mutate(Color = glue::glue("#{Color}")) %>%
 #   dplyr::left_join(meth_classification, by = "MethylationClassName") %>%
-#   dplyr::mutate(MethylationClass = glue::glue("{MethylationClassName} ({Abbreviation})")) %>%
+#   # dplyr::mutate(MethylationClass = glue::glue("{MethylationClassName} ({Abbreviation})")) %>%
+#   dplyr::mutate(MethylationClass = make.names(Abbreviation)) %>%
+#   dplyr::mutate(MethylationClass = factor(MethylationClass)) %>%
 #   dplyr::select(Basename, MethylationClass)
 #
+# # Use testing data
+# # beta_value_adjusted_test_rda <- file.path(output, "beta_value_adjusted_test.Rda")
+# # load(beta_value_adjusted_test_rda)
+# # Use real data set
 # beta_value_adjusted <- yamatClassifier::get_beta_value_adjusted(trainer = trainer)
 # pheno_sorted <- pheno[order(match(pheno$Basename, colnames(beta_value_adjusted))), ]
 # dat <- beta_value_adjusted %>%
 #   t() %>%
 #   as.data.frame() %>%
-#   cbind(pheno_sorted[, "MethylationClass", drop = FALSE])
+#   cbind(pheno_sorted[, "MethylationClass", drop = FALSE]) %>%
+#   dplyr::mutate(MethylationClass = factor(MethylationClass))
 #
-#
-# tune_result <- yamatClassifier::train_model1(
+# model2_cross_validation <- yamatClassifier::train_model2(
 #   dat = dat,
 #   response_name = "MethylationClass",
-#   feature_selection = "Boruta",
 #   outer_cv_folds = 5,
 #   inner_cv_folds = 5,
 #   random_state = 42,
-#   mtry = 13,
+#   top_n = 10000,
+#   feature_selection_ranger_num_trees = 100,
+#   importance = "permutation",
+#   save_level = 2,
+#   save_prefix = "train_model2",
+#   overwrite = FALSE,
+#   output = file.path(output, "train_model2"),
 #   verbose = TRUE
 # )
 #
-# tune_result_rda <- file.path(output, "tune_result.Rda")
-# save(tune_result, file = tune_result_rda)
-
-
+# model2_cross_validation_rda <- file.path(output, "model2_cross_validation.Rda")
+# save(model2_cross_validation, file = model2_cross_validation_rda)

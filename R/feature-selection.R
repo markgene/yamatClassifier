@@ -56,5 +56,6 @@ select_features_ranger <- function(dat,
       "{length(top_features)} features selected by random forest implemented by ranger."
     )
   )
+  gc()
   return(top_features)
 }
