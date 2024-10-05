@@ -56,12 +56,7 @@ train_model4 <- function(dat,
   x <- dat[, -(which(colnames(dat) == response_name)), drop = FALSE]
   if (is.null(mtry)) {
     warning("mtry is not set and set to default")
-    if (!is.null(responses) && !is.factor(responses)) {
-      mtry_base <- max(floor(ncol(x) / 3), 1)
-    } else {
-      mtry_base <- floor(sqrt(ncol(x)))
-    }
-    mtry <- mtry_base
+    mtry <- 0
   }
   set.seed(random_state)
   outer_train_indexes_rda <- file.path(output,
@@ -91,14 +86,19 @@ train_model4 <- function(dat,
     }
   }
   tune_result <- lapply(mtry, function(mtry_i) {
-    rf_grid <- expand.grid(mtry = mtry_i)
+    if (mtry_i == 0) {
+      rf_grid <- NULL
+      mtry_i <- "default"
+    } else {
+      rf_grid <- expand.grid(mtry = mtry_i)
+    }
     logger::log_debug(glue::glue("Use random forest parameters mtry={mtry_i}"))
     cv_result <- lapply(seq(length(outer_train_indexes)), function(i) {
       logger::log_debug(glue::glue("Outer fold #{i}"))
       calibrated_prob_response_i_rda <- file.path(
         output,
         glue::glue(
-          "{save_prefix}calibrated_prob_response_mtry{mtry_i}_fold_{i}.Rda"
+          "{save_prefix}calibrated_prob_response_mtry_{mtry_i}_fold_{i}.Rda"
         )
       )
       if (file.exists(calibrated_prob_response_i_rda)) {
@@ -160,9 +160,6 @@ train_model4_outer_fold <- function(dat,
                                     rf_grid = NULL,
                                     verbose = TRUE,
                                     ...) {
-  if (is.null(rf_grid)) {
-    stop("parameter tuning grid is required.")
-  }
   outer_train <- dat[outer_train_index, ]
   outer_test <- dat[-outer_train_index, ]
   y <- outer_train[, response_name, drop = TRUE]
@@ -225,9 +222,6 @@ train_model4_inner_fold <- function(outer_train,
                                     rf_grid = NULL,
                                     verbose = TRUE,
                                     ...) {
-  if (is.null(rf_grid)) {
-    stop("parameter tuning grid is required.")
-  }
   responses <- factor(outer_train[, response_name, drop = TRUE])
   train_control <- caret::trainControl(
     method = "cv",
