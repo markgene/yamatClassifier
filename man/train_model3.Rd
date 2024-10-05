@@ -11,7 +11,6 @@ train_model3(
   inner_cv_folds = 5,
   random_state = 56,
   mtry = NULL,
-  top_n = 10000,
   selected_features = NULL,
   importance = "permutation",
   save_level = 3,
@@ -33,8 +32,6 @@ train_model3(
 \item{random_state}{random seed.}
 
 \item{mtry}{A vector of mtry for parameter tuning.}
-
-\item{top_n}{top N loci/features.}
 
 \item{selected_features}{features selected.}
 

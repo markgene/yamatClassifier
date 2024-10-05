@@ -13,7 +13,6 @@ test_that("train_model3() end-to-end", {
     inner_cv_folds = 3,
     random_state = 1,
     # mtry = 10,
-    top_n = 2,
     selected_features = c("Sepal.Length", "Sepal.Width"),
     importance = "permutation",
     save_level = 2,

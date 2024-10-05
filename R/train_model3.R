@@ -8,7 +8,6 @@
 #' @param inner_cv_folds inner cross-validation fold number.
 #' @param random_state random seed.
 #' @param mtry A vector of mtry for parameter tuning.
-#' @param top_n top N loci/features.
 #' @param selected_features features selected.
 #' @param importance \code{importance} of \code{\link[ranger]{ranger}}.
 #' @param save_level if save_level > 0, save outer train index. If save_level > 1,
@@ -37,7 +36,6 @@ train_model3 <- function(dat,
                          inner_cv_folds = 5,
                          random_state = 56,
                          mtry = NULL,
-                         top_n = 10000,
                          selected_features = NULL,
                          importance = "permutation",
                          save_level = 3,
@@ -125,7 +123,6 @@ train_model3 <- function(dat,
         random_state = random_state + i,
         inner_cv_folds = inner_cv_folds,
         rf_grid = rf_grid,
-        top_n = top_n,
         selected_features = selected_features,
         importance = importance,
         verbose = verbose
@@ -157,7 +154,6 @@ train_model3 <- function(dat,
 #' @param random_state random seed.
 #' @param inner_cv_folds inner cross-validation fold number.
 #' @param rf_grid A data frame with possible tuning values. See \code{\link[caret]{train}}.
-#' @param top_n top N loci/features.
 #' @param selected_features features selected.
 #' @param importance \code{importance} of \code{\link[ranger]{ranger}}.
 #' @param verbose A bool.
@@ -169,7 +165,6 @@ train_model3_outer_fold <- function(dat,
                                     random_state,
                                     inner_cv_folds = 5,
                                     rf_grid = NULL,
-                                    top_n = 10000,
                                     selected_features = NULL,
                                     importance = "permutation",
                                     verbose = TRUE,

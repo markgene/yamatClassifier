@@ -11,7 +11,6 @@ train_model3_outer_fold(
   random_state,
   inner_cv_folds = 5,
   rf_grid = NULL,
-  top_n = 10000,
   selected_features = NULL,
   importance = "permutation",
   verbose = TRUE,
@@ -30,8 +29,6 @@ train_model3_outer_fold(
 \item{inner_cv_folds}{inner cross-validation fold number.}
 
 \item{rf_grid}{A data frame with possible tuning values. See \code{\link[caret]{train}}.}
-
-\item{top_n}{top N loci/features.}
 
 \item{selected_features}{features selected.}
 
