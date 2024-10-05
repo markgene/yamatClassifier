@@ -4,12 +4,15 @@
 \alias{select_features_boruta}
 \title{Perform Boruta feature selection.}
 \usage{
-select_features_boruta(dat, response_name, ...)
+select_features_boruta(dat, response_name, with_tentative = FALSE, ...)
 }
 \arguments{
 \item{dat}{a \code{data.frame} of input data.}
 
 \item{response_name}{column name of the response.}
+
+\item{with_tentative}{if set to \code{TRUE}, Tentative attributes will be
+also returned. See \code{\link[Boruta]{getSelectedAttributes}}.}
 
 \item{...}{parameters for \code{\link[Boruta]{Boruta}}.}
 }
