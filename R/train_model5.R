@@ -37,18 +37,18 @@
 #'   }
 #' @export
 cross_validate_model5 <- function(dat,
-                         response_name,
-                         outer_cv_folds = 3,
-                         inner_cv_folds = 3,
-                         calibration_youden_index_threshold = 0.9,
-                         calibration_lambda_min_ratio = 1e-6,
-                         random_state = 56,
-                         mtry = NULL,
-                         save_level = 3,
-                         save_prefix = "train_model5_",
-                         overwrite = FALSE,
-                         output = NULL,
-                         verbose = TRUE) {
+                                  response_name,
+                                  outer_cv_folds = 3,
+                                  inner_cv_folds = 3,
+                                  calibration_youden_index_threshold = 0.9,
+                                  calibration_lambda_min_ratio = 1e-6,
+                                  random_state = 56,
+                                  mtry = NULL,
+                                  save_level = 3,
+                                  save_prefix = "train_model5_",
+                                  overwrite = FALSE,
+                                  output = NULL,
+                                  verbose = TRUE) {
   if (save_level > 0 && is.null(output)) {
     stop("output is required when save level > 0")
   }
@@ -355,11 +355,11 @@ train_calibration_model_ridge <- function(X,
   # class_1_optimal_lambda <- lambdas[which.max(youden_values[, 1])]
 
   # Fit the final model using the optimal lambda
-  final_model <- glmnet(X,
-                        y,
-                        alpha = 0,
-                        family = "multinomial",
-                        lambda = optimal_lambda)
+  final_model <- glmnet::glmnet(X,
+                                y,
+                                alpha = 0,
+                                family = "multinomial",
+                                lambda = optimal_lambda)
   return(
     list(
       final_model = final_model,
