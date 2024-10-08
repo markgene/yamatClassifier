@@ -206,6 +206,8 @@ train_model5_outer_fold <- function(dat,
     selected_features,
     boruta_result,
     calibrated_probs,
+    outer_train,
+    outer_test,
     inner_fold_result,
     file = result_file
   )
@@ -362,6 +364,8 @@ train_calibration_model_ridge <- function(X,
                                 lambda = optimal_lambda)
   return(
     list(
+      X = X,
+      y = y,
       final_model = final_model,
       youden_values = youden_values,
       ridge_model = ridge_model,
