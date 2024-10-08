@@ -1,6 +1,6 @@
-# Training model 5
+# Model 5
 
-#' Train model 5
+#' Cross-validate model 5
 #'
 #' Similar to model 1, but with tentative features from Boruta.
 #'
@@ -36,7 +36,7 @@
 #'       CV.
 #'   }
 #' @export
-train_model5 <- function(dat,
+cross_validate_model5 <- function(dat,
                          response_name,
                          outer_cv_folds = 3,
                          inner_cv_folds = 3,
