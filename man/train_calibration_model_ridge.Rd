@@ -21,7 +21,7 @@ train_calibration_model_ridge(
 \item{lambda_min_ratio}{see \code{lambda.min.ratio} of \code{\link[glmnet]{glmnet}}.}
 }
 \value{
-calibration model.
+calibration result.
 }
 \description{
 Train calibration model with ridge regularization.

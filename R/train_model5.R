@@ -123,11 +123,8 @@ cross_validate_model5 <- function(dat,
         result_file = outer_fold_i_rda,
         verbose = verbose
       )
-      calibrated_prob_response <- outer_fold_result$calibrated_prob_response
-      gc()
-      calibrated_prob_response
+      outer_fold_result
     })
-    do.call(rbind, cv_result)
   })
   return(tune_result)
 }
@@ -187,25 +184,48 @@ train_model5_outer_fold <- function(dat,
     rf_grid = rf_grid,
     verbose = verbose
   )
+
   logger::log_debug("Run random forest model on outer fold testing data set")
-  predicted_probs <- predict(inner_fold_result$rf_model,
-                             newdata = outer_test,
-                             type = "prob") %>%
+  outer_test_x <- as.matrix(outer_test[, selected_features])
+  rf_probs <- predict(inner_fold_result$rf_model,
+                      newdata = outer_test_x,
+                      type = "prob") %>%
     as.matrix()
-  logger::log_debug("Run calibration model on outer fold testing data set")
-  calibrated_probs <- predict(inner_fold_result$calibration_model,
-                              newx = predicted_probs,
-                              type = "response")
-  calibrated_prob_response <- cbind(calibrated_probs, outer_test[, response_name, drop = FALSE])
+  rf_prob_response <- cbind(rf_probs, outer_test[, response_name, drop = FALSE])
+
+  logger::log_debug(
+    "Run calibration model maximizing average Youden index of inner fold  on outer fold testing data set"
+  )
+  calibrated_probs_max_avg_youden <- predict(
+    inner_fold_result$calibration_result$ridge_model,
+    newx = rf_probs,
+    s = inner_fold_result$calibration_result$min_lambda_max_avg_youden,
+    type = "response"
+  )
+  calibrated_prob_response_max_avg_youden <- cbind(calibrated_probs_max_avg_youden[, , 1], outer_test[, response_name, drop = FALSE])
+  gc()
+
+  logger::log_debug(
+    "Run calibration model minimizing misclassification rate of inner fold on outer fold testing data set"
+  )
+  calibrated_probs_min_misclassification <- predict(
+    inner_fold_result$calibration_result$cv_ridge_model,
+    newx = rf_probs,
+    s = "lambda.min",
+    type = "response"
+  )
+  calibrated_prob_response_min_misclassification <- cbind(calibrated_probs_min_misclassification[, , 1], outer_test[, response_name, drop = FALSE])
   gc()
   logger::log_debug(glue::glue(
     "Saving calibrated prob and selected features into {result_file}"
   ))
   save(
-    calibrated_prob_response,
+    rf_prob_response,
+    calibrated_prob_response_max_avg_youden,
+    calibrated_prob_response_min_misclassification,
     selected_features,
     boruta_result,
-    calibrated_probs,
+    calibrated_probs_max_avg_youden,
     outer_train,
     outer_test,
     inner_fold_result,
@@ -214,7 +234,9 @@ train_model5_outer_fold <- function(dat,
   return(
     list(
       selected_features = selected_features,
-      calibrated_prob_response = calibrated_prob_response
+      rf_prob_response = rf_prob_response,
+      calibrated_prob_response_max_avg_youden = calibrated_prob_response_max_avg_youden,
+      calibrated_prob_response_min_misclassification = calibrated_prob_response_min_misclassification
     )
   )
 }
@@ -273,15 +295,10 @@ train_model5_inner_fold <- function(outer_train,
     youden_index_threshold = calibration_youden_index_threshold,
     lambda_min_ratio = calibration_lambda_min_ratio
   )
-  calibration_model <- calibration_result$final_model
+  calibration_model <- calibration_result$ridge_model
+  optimal_lambda <- calibration_result$optimal_lambda
   gc()
-  return(
-    list(
-      rf_model = rf_model,
-      calibration_model = calibration_model,
-      calibration_result = calibration_result
-    )
-  )
+  return(list(rf_model = rf_model, calibration_result = calibration_result))
 }
 
 
@@ -291,12 +308,13 @@ train_model5_inner_fold <- function(outer_train,
 #' @param y a factor vector of response.
 #' @param youden_index_threshold the threshold. Default to 0.9.
 #' @param lambda_min_ratio see \code{lambda.min.ratio} of \code{\link[glmnet]{glmnet}}.
-#' @returns calibration model.
+#' @returns calibration result.
 #' @export
 train_calibration_model_ridge <- function(X,
                                           y,
                                           youden_index_threshold = 0.9,
                                           lambda_min_ratio = 1e-6) {
+  logger::log_debug("Calibration model to maximize average Youden index")
   # Fit ridge logistic regression model using glmnet
   ridge_model <- glmnet::glmnet(X,
                                 y,
@@ -350,26 +368,38 @@ train_calibration_model_ridge <- function(X,
   avg_youden_values <- rowMeans(youden_values)
 
   # Find the lambda that maximizes the average Youden Index
-  optimal_lambda <- lambdas[which.max(avg_youden_values)]
-  optimal_avg_youden_value <- max(avg_youden_values)
+  # if there are multiple lambda with the same Youden index,
+  # get the smallest one.
+  min_lambda_max_avg_youden <- lambdas[which.max(avg_youden_values)]
+  max_avg_youden_value <- max(avg_youden_values)
 
   # Alternatively, for a specific class (e.g., class 1)
   # class_1_optimal_lambda <- lambdas[which.max(youden_values[, 1])]
 
   # Fit the final model using the optimal lambda
-  final_model <- glmnet::glmnet(X,
-                                y,
-                                alpha = 0,
-                                family = "multinomial",
-                                lambda = optimal_lambda)
+  # According to glmnet, Avoid supplying a single value for lambda (for
+  # predictions after CV use predict() instead).
+  # final_model <- glmnet::glmnet(X,
+  #                               y,
+  #                               alpha = 0,
+  #                               family = "multinomial",
+  #                               lambda = optimal_lambda)
+
+  logger::log_debug("Calibration model to minimize misclassification error")
+  cv_ridge_model <- glmnet::cv.glmnet(X,
+                                      y,
+                                      family = "multinomial",
+                                      alpha = 0,
+                                      type.measure = "class")
   return(
     list(
       X = X,
       y = y,
-      final_model = final_model,
       youden_values = youden_values,
       ridge_model = ridge_model,
-      optimal_avg_youden_value = optimal_avg_youden_value
+      cv_ridge_model = cv_ridge_model,
+      min_lambda_max_avg_youden = min_lambda_max_avg_youden,
+      max_avg_youden_value = max_avg_youden_value
     )
   )
 }
