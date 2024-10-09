@@ -308,12 +308,14 @@ train_model5_inner_fold <- function(outer_train,
 #' @param y a factor vector of response.
 #' @param youden_index_threshold the threshold. Default to 0.9.
 #' @param lambda_min_ratio see \code{lambda.min.ratio} of \code{\link[glmnet]{glmnet}}.
+#' @param cv_glmnet_nfolds see \code{nfolds} of \code{\link[glmnet]{cv.glmnet}}.
 #' @returns calibration result.
 #' @export
 train_calibration_model_ridge <- function(X,
                                           y,
                                           youden_index_threshold = 0.9,
-                                          lambda_min_ratio = 1e-6) {
+                                          lambda_min_ratio = 1e-6,
+                                          cv_glmnet_nfolds = 3) {
   logger::log_debug("Calibration model to maximize average Youden index")
   # Fit ridge logistic regression model using glmnet
   ridge_model <- glmnet::glmnet(X,
@@ -386,11 +388,14 @@ train_calibration_model_ridge <- function(X,
   #                               lambda = optimal_lambda)
 
   logger::log_debug("Calibration model to minimize misclassification error")
-  cv_ridge_model <- glmnet::cv.glmnet(X,
-                                      y,
-                                      family = "multinomial",
-                                      alpha = 0,
-                                      type.measure = "class")
+  cv_ridge_model <- glmnet::cv.glmnet(
+    X,
+    y,
+    family = "multinomial",
+    alpha = 0,
+    type.measure = "class",
+    nfolds = cv_glmnet_nfolds
+  )
   return(
     list(
       X = X,
