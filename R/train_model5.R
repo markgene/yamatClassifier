@@ -172,6 +172,13 @@ train_model5_outer_fold <- function(dat,
                                            response_name = response_name,
                                            with_tentative = TRUE)
   selected_features <- boruta_result$selected_features
+  save(
+    selected_features,
+    boruta_result,
+    outer_train,
+    outer_test,
+    file = result_file
+  )
   outer_train <- outer_train[, c(selected_features, response_name)]
   logger::log_debug("Inner cross validation")
   inner_fold_result <- train_model5_inner_fold(
