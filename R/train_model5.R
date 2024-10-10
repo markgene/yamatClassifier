@@ -167,18 +167,23 @@ train_model5_outer_fold <- function(dat,
     dplyr::group_by(across(all_of(response_name))) %>%
     dplyr::sample_n(size = min_n_sample) %>%
     dplyr::ungroup()
-  logger::log_debug("Selecting features with Boruta algorithm")
-  boruta_result <- select_features_boruta2(outer_train_downsampled,
-                                           response_name = response_name,
-                                           with_tentative = TRUE)
-  selected_features <- boruta_result$selected_features
-  save(
-    selected_features,
-    boruta_result,
-    outer_train,
-    outer_test,
-    file = result_file
-  )
+
+  result_file_prefix <- sub(pattern = "(.*)\\..*$",
+                            replacement = "\\1",
+                            basename(result_file))
+  boruta_result_rda <- paste0(result_file_prefix, "_boruta_result.Rda")
+  if (file.exists(boruta_result_rda)) {
+    logger::log_debug("Load pre-computed selected features with Boruta algorithm")
+    load(boruta_result_rda)
+  } else {
+    logger::log_debug("Selecting features with Boruta algorithm")
+    boruta_result <- select_features_boruta2(outer_train_downsampled,
+                                             response_name = response_name,
+                                             with_tentative = TRUE)
+    selected_features <- boruta_result$selected_features
+    save(selected_features, boruta_result, file = boruta_result_rda)
+  }
+
   outer_train <- outer_train[, c(selected_features, response_name)]
   logger::log_debug("Inner cross validation")
   inner_fold_result <- train_model5_inner_fold(
@@ -191,7 +196,6 @@ train_model5_outer_fold <- function(dat,
     rf_grid = rf_grid,
     verbose = verbose
   )
-
   logger::log_debug("Run random forest model on outer fold testing data set")
   outer_test_x <- as.matrix(outer_test[, selected_features])
   rf_probs <- predict(inner_fold_result$rf_model,
@@ -212,24 +216,24 @@ train_model5_outer_fold <- function(dat,
   calibrated_prob_response_max_avg_youden <- cbind(calibrated_probs_max_avg_youden[, , 1], outer_test[, response_name, drop = FALSE])
   gc()
 
-  logger::log_debug(
-    "Run calibration model minimizing misclassification rate of inner fold on outer fold testing data set"
-  )
-  calibrated_probs_min_misclassification <- predict(
-    inner_fold_result$calibration_result$cv_ridge_model,
-    newx = rf_probs,
-    s = "lambda.min",
-    type = "response"
-  )
-  calibrated_prob_response_min_misclassification <- cbind(calibrated_probs_min_misclassification[, , 1], outer_test[, response_name, drop = FALSE])
-  gc()
+  # logger::log_debug(
+  #   "Run calibration model minimizing misclassification rate of inner fold on outer fold testing data set"
+  # )
+  # calibrated_probs_min_misclassification <- predict(
+  #   inner_fold_result$calibration_result$cv_ridge_model,
+  #   newx = rf_probs,
+  #   s = "lambda.min",
+  #   type = "response"
+  # )
+  # calibrated_prob_response_min_misclassification <- cbind(calibrated_probs_min_misclassification[, , 1], outer_test[, response_name, drop = FALSE])
+  # gc()
   logger::log_debug(glue::glue(
     "Saving calibrated prob and selected features into {result_file}"
   ))
   save(
     rf_prob_response,
     calibrated_prob_response_max_avg_youden,
-    calibrated_prob_response_min_misclassification,
+    # calibrated_prob_response_min_misclassification,
     selected_features,
     boruta_result,
     calibrated_probs_max_avg_youden,
@@ -242,8 +246,7 @@ train_model5_outer_fold <- function(dat,
     list(
       selected_features = selected_features,
       rf_prob_response = rf_prob_response,
-      calibrated_prob_response_max_avg_youden = calibrated_prob_response_max_avg_youden,
-      calibrated_prob_response_min_misclassification = calibrated_prob_response_min_misclassification
+      calibrated_prob_response_max_avg_youden = calibrated_prob_response_max_avg_youden
     )
   )
 }
@@ -302,8 +305,6 @@ train_model5_inner_fold <- function(outer_train,
     youden_index_threshold = calibration_youden_index_threshold,
     lambda_min_ratio = calibration_lambda_min_ratio
   )
-  calibration_model <- calibration_result$ridge_model
-  optimal_lambda <- calibration_result$optimal_lambda
   gc()
   return(list(rf_model = rf_model, calibration_result = calibration_result))
 }
@@ -394,22 +395,22 @@ train_calibration_model_ridge <- function(X,
   #                               family = "multinomial",
   #                               lambda = optimal_lambda)
 
-  logger::log_debug("Calibration model to minimize misclassification error")
-  cv_ridge_model <- glmnet::cv.glmnet(
-    X,
-    y,
-    family = "multinomial",
-    alpha = 0,
-    type.measure = "class",
-    nfolds = cv_glmnet_nfolds
-  )
+  # logger::log_debug("Calibration model to minimize misclassification error")
+  # cv_ridge_model <- glmnet::cv.glmnet(
+  #   X,
+  #   y,
+  #   family = "multinomial",
+  #   alpha = 0,
+  #   type.measure = "class",
+  #   nfolds = cv_glmnet_nfolds
+  # )
   return(
     list(
       X = X,
       y = y,
       youden_values = youden_values,
       ridge_model = ridge_model,
-      cv_ridge_model = cv_ridge_model,
+      # cv_ridge_model = cv_ridge_model,
       min_lambda_max_avg_youden = min_lambda_max_avg_youden,
       max_avg_youden_value = max_avg_youden_value
     )

@@ -8,7 +8,8 @@ train_calibration_model_ridge(
   X,
   y,
   youden_index_threshold = 0.9,
-  lambda_min_ratio = 1e-06
+  lambda_min_ratio = 1e-06,
+  cv_glmnet_nfolds = 3
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ train_calibration_model_ridge(
 \item{youden_index_threshold}{the threshold. Default to 0.9.}
 
 \item{lambda_min_ratio}{see \code{lambda.min.ratio} of \code{\link[glmnet]{glmnet}}.}
+
+\item{cv_glmnet_nfolds}{see \code{nfolds} of \code{\link[glmnet]{cv.glmnet}}.}
 }
 \value{
 calibration result.
